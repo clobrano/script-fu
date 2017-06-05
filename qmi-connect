@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+## QMI connection
+## usage: qmi-connect [options]
+## options:
+##  -a <apn>
+##  -d <device>     qmi control device (/dev/cdc-wdmX)
+##  -i <iface>      Network interface (e.g. wwan0)
+##  -c <cid>        client id
+##  -p <ip_type>    IP type (IPv4=4 IPv6=6) [default: 4]
+##  -s <session_id> [default:0]
+##  -t <table>      create routing table configuration file
+##  -v              Verbose enabled [default: 0]
+
+_ip_type=4
+_session_id=0
+[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
+while getopts 'ha:d:i:c:p:s:t:v' OPT; do
+    case $OPT in
+        h)
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+        a)
+            _apn=$OPTARG
+            ;;
+        d)
+            _device=$OPTARG
+            ;;
+        i)
+            _iface=$OPTARG
+            ;;
+        c)
+            _cid=$OPTARG
+            ;;
+        p)
+            _ip_type=$OPTARG
+            ;;
+        s)
+            _session_id=$OPTARG
+            ;;
+        t)
+            _table=$OPTARG
+            ;;
+        v)
+            _v=1
+            ;;
+        \?)
+            echo "---"
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+    esac
+done
+
+source qmi-lib
+[ ! -z $_v ] && verbose=" --verbose "
+[ ! -z $_cid ] && client_cid=" --client-cid=$_cid "
+
+set -x
+sudo qmicli $verbose -p -d $_device --wds-start-network=apn=$_apn,ip-type=$_ip_type --client-no-release-cid $client_cid
+set +x
+
+if [ ! -z $_table ]; then
+    output=$(mktemp /tmp/qmi-stateXXX)
+    set -x
+    sudo qmicli $verbose -p -d $_device --wds-get-current-settings --client-no-release-cid $client_cid | tee $output
+    set +x
+    parse_output $output $_session_id $_table
+    echo RMNET=$(sudo qmicli -p -d $_device --get-wwan-iface) >> $output
+    rm $output
+fi
