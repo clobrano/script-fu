@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+## Helper to configure main or secondary route table
+## This script expects a file 'ip-session-${ID}' with the following information (one per line):
+##   IP=<IP>
+##   NET=<IP network> (e.g. 192.168.2.0/24)
+##   GW=<gateway address>
+##   TABLE=<iproute2 table name or id> [optional]: If tablename is not provided, main table will be used
+## usage: route-table-config [option]
+##   -c <conf>   configuration file's relative path
+##   -i <rmnet>  interface name (e.g. wwan0)
+##   -r          restore default gateway configuration
+##   -v          verbose [default: 0]
+## This script requires that the secondary tables have already been added to /etc/iproute2/rt_tables
+#
+# 2016-12-06 Changelog
+#   - arg3 is relative path to config file instead of the directory where the conf file is stored
+# 2017-02-14
+#   - netmask prefix is computed only if not provided in configuration file
+
+_v=0
+[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
+while getopts 'hc:i:rv' OPT; do
+    case $OPT in
+        h)
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+        c)
+            _conf=$OPTARG
+            ;;
+        i)
+            _rmnet=$OPTARG
+            ;;
+        r)
+            _r=1
+            ;;
+        v)
+            _v=1
+            ;;
+        \?)
+            echo "---"
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+    esac
+done
+
+source qmi-lib
+# exit at the first error
+set -eu
+
+source $_conf
+TABLE=${TABLE-main}
+MASK=${Mask-none}
+reset=${_r-0}
+
+# Debug
+[ ! -z $_v ] && set -x
+
+echo "Getting IP config from $_conf"
+
+if [ $reset -eq 1 ]; then
+  echo "Flushing current config"
+  sudo ip rule flush
+  # restoring default rule table
+  sudo ip rule add priority 32766 lookup main
+  sudo ip rule add priority 32767 lookup default
+
+  sudo ip route flush table main
+  sudo ip addr flush dev $_rmnet
+
+  if [ $TABLE != "main" ]; then
+    ip route flush table $TABLE
+  fi
+fi
+
+sudo ip link set $_rmnet up
+#if [ -z $PREFIX ]; then
+#    PREFIX=$(mask2cdr $MASK)
+#fi
+sudo ip addr add $NET dev $_rmnet
+
+if [ $TABLE = "main" ]; then
+  sudo ip route add default via $GW dev $_rmnet proto static
+else
+  NET=$(ip route | grep $_rmnet | cut -d' ' -f1)
+  sudo ip route add $NET dev $_rmnet src $IP table $TABLE
+  sudo ip route add default via $GW dev $_rmnet table $TABLE proto static
+
+  sudo ip rule add from $NET table $TABLE
+  sudo ip rule add to $NET table $TABLE
+
+  #sudo ip route flush cache
+fi
