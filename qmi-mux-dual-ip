@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+## Test for creating 2 QMI connection on 2 different QMUX devices
+## options:
+##     -d <device>     QMI control device
+##     -i <iface>      Network Interface [default: wwan0]
+##
+## created: 2017-02-15
+## changelog:
+##  2017-03-24: added iface flag
+
+_iface=wwan0
+[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
+while getopts 'hd:i:' OPT; do
+    case $OPT in
+        h)
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+        d)
+            _device=$OPTARG
+            ;;
+        i)
+            _iface=$OPTARG
+            ;;
+        \?)
+            echo "---"
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+    esac
+done
+
+# -------------- FUNCTIONS ------------------------------
+run () {
+    local cmd="$1"
+    echo "$1"
+    out=`$1`
+    echo "$out"
+}
+
+# -------------- CHECKS ------------------------------
+is_gw_already_defined=$(ip route | grep default | wc -l)
+if [ $is_gw_already_defined -ge 1 ]; then
+    echo "Found a Gateway alredy defined. Please disable any connection first"
+    exit 0
+fi
+
+rt_table_tableA_exists=$(cat /etc/iproute2/rt_tables | grep tableA | wc -l)
+if [ ! $rt_table_tableA_exists -eq 1 ]; then
+    echo "Please add a routing table named 'tableA' to your /etc/iproute2/rt_table file"
+    exit 0
+fi
+
+rt_table_tableB_exists=$(cat /etc/iproute2/rt_tables | grep tableB | wc -l)
+if [ ! $rt_table_tableB_exists -eq 1 ]; then
+    echo "Please add a routing table named 'tableB' to your /etc/iproute2/rt_table file"
+    exit 0
+fi
+
+set -ue
+echo "Checking whether the modem is connected to the home network..."
+run "sudo qmicli -d $_device --nas-get-home-network"
+echo "If the modem is connected to the home network press ENTER, othewise interrupt with C-c"
+read
+
+# -------------- CONFIGURATION ------------------------------
+echo "Setting data format..."
+run "sudo qmicli -d $_device --set-expected-data-format=raw-ip"
+run "sudo qmicli -d $_device --wda-set-data-format=link-layer-protocol=raw-ip,ul-protocol=qmap,dl-protocol=qmap"
+
+echo "Creating qmux-es with id 1 and 2"
+echo 1 | sudo tee /sys/class/net/${_iface}/qmi/add_mux
+echo 2 | sudo tee /sys/class/net/${_iface}/qmi/add_mux
+
+echo "Setting hw network device up..."
+run "sudo ip link set ${_iface} up"
+
+# -------------- CONNECTION --------------------------------
+echo "Getting cid for the first connection..."
+_cid1=$(sudo qmicli -d $_device --wds-noop --client-no-release-cid | sed -n "s_\s*CID: '\([0-9]*\)'_\1_p")
+echo "CID: '$_cid1'"
+
+echo "Binding mux data port 1"
+run "sudo qmicli -d $_device --wds-bind-mux-data-port=mux-id=1,ep-iface-number=2 --client-no-release-cid --client-cid=$_cid1 --verbose"
+
+echo "Connecting qmimux0"
+qmi-connect -d $_device -i qmimux0 -a web.omnitel.it -t tableA -c $_cid1
+source ip-session-0-tableA
+route-table-config -c ./ip-session-0-tableA -i qmimux0
+
+echo "Getting cid for the second connection..."
+_cid2=$(sudo qmicli -d $_device --wds-noop --client-no-release-cid | sed -n "s_\s*CID: '\([0-9]*\)'_\1_p")
+echo "CID: '$_cid2'"
+
+echo "Binding mux data port 2"
+run "sudo qmicli -d $_device --wds-bind-mux-data-port=mux-id=2,ep-iface-number=2 --client-no-release-cid --client-cid=$_cid2"
+
+echo "Connecting qmimux1"
+qmi-connect -d $_device -i qmimux1 -a mobile.vodafone.it -t tableB -c $_cid2
+source ip-session-0-tableB
+route-table-config -c ./ip-session-0-tableB -i qmimux1
+
+echo "Configuring route load balancing with gateways and ifaces"
+
+gw1=$(ip route show table tableA | grep default | sed -n 's/^default via \([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\) dev qmimux0  proto static/\1/p')
+gw2=$(ip route show table tableB  | grep default | sed -n 's/^default via \([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*\) dev qmimux1  proto static/\1/p')
+sudo ip route add default scope global nexthop via $gw1 dev qmimux0 weight 1 nexthop via $gw2 dev qmimux1 weight 1
+echo "---"

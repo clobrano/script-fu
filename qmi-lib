@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Helper for configuring IP session on QMI
+
+which tee > /dev/null
+
+mask2cdr ()
+{
+   # Assumes there's no "255." after a non-255 byte in the mask
+   local x=${1##*255.}
+   set -- 0^^^128^192^224^240^248^252^254^ $(( (${#1} - ${#x})*2 )) ${x%%.*}
+   x=${1%%$3*}
+   echo $(( $2 + (${#x}/4) ))
+}
+
+parse_output() {
+  local FILE=$1
+  local ID=$2
+  local TABLE=$3
+  local OUT=ip-session-"$ID-$TABLE"
+  set -u
+  set -e
+
+  cat /dev/null > $OUT
+
+  IP=$(sed -n "s/IPv4 address: \([0-9\./]*\)/\1/p" $FILE | sed -n "s/\s*//p")
+  GW=$(sed -n "s/IPv4 gateway address: \([0-9\.]*\)/\1/p" $FILE | sed -n "s/\s*//p")
+  NETMASK=$(sed -n "s/IPv4 subnet mask: \([0-9\.]*\)/\1/p" $FILE | sed -n "s/\s*//p")
+  PREFIX=$(mask2cdr $NETMASK)
+
+  echo NET=$IP/$PREFIX >> $OUT
+  echo NETMASK=$NETMASK >> $OUT
+  echo IP=$IP   >> $OUT
+  echo GW=$GW   >> $OUT
+  echo PREFIX=$PREFIX >> $OUT
+  echo TABLE=$TABLE >> $OUT
+}
+
+connect () {
+  local DEV1=$1
+  local APN=$2
+  local ID=$3
+  local TABLE=${4-main}
+
+  set -u
+  set -e
+
+  output=$(mktemp /tmp/qmi-stateXXX)
+  sudo qmicli -p -d $DEV1 --wds-start-network=apn=$APN,ip-type=4 --client-no-release-cid
+  sudo qmicli -p -d $DEV1 --wds-get-current-settings | tee $output
+  parse_output $output $ID $TABLE
+  echo RMNET=$(sudo qmicli -p -d $DEV1 --get-wwan-iface) >> $output
+  rm $output
+}
+
+get_client_id () {
+    # Stream is the output log of a qmicli command obtained with --client-no-release-cid
+    local stream=$1
+    _mux_id=`sed -n "s_CID: '\([0-9]*\)'_\1_p" $stream`
+    echo $_mux_id
+}
