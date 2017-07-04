@@ -27,5 +27,16 @@ channel = opts ['--channel']
 
 url = 'https://irclogs.ubuntu.com/{date}/%23{channel}.txt'.format (date=date, channel=channel)
 
+alert = False
+messages = []
 for line in urllib2.urlopen(url):
-    print(line.rstrip())
+    line = line.rstrip()
+    if "lobrano" in line or "carlo" in line:
+        alert = True
+        messages.append (line)
+    print (line)
+
+if alert:
+    print ("\nThere are messages for you");
+    for msg in messages:
+        print (msg)
