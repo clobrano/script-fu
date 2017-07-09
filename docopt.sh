@@ -47,24 +47,24 @@ dlog(){
     [ ! -z $_d ] && echo $@
 }
 
-tmpfile=$(mktemp /tmp/getopt.XXX)
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>|\1: _\2=$OPTARG|p' | cut -d ' ' -f1,2 > $tmpfile
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)|\1 _\1=1|p' | cut -d ' ' -f1,2 >> $tmpfile
+varsfile=$(mktemp /tmp/getopt.XXX)
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>|\1: _\2=$OPTARG|p' | cut -d ' ' -f1,2 > $varsfile
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)|\1 _\1=1|p' | cut -d ' ' -f1,2 >> $varsfile
 
-flaglist=`cut -d ' ' -f1  $tmpfile | tr -d '\n'`
-variables=`cut -d ' ' -f2  $tmpfile`
+flaglist=`cut -d ' ' -f1  $varsfile | tr -d '\n'`
+variables=`cut -d ' ' -f2  $varsfile`
 
 defaults=$(mktemp /tmp/getopt.XXX)
 sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>\s*.*\[default:\s*\(\w\+\)\]|_\2=\3|p' > $defaults
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)\s*.*\[default:\s*\(\w\+\)\]|\1=\2|p' >> $defaults
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)\s*.*\[default:\s*\(\w\+\)\]|_\1=\2|p' >> $defaults
 
-dlog content of tmpfile
-[ ! -z $_d ] && cat $tmpfile && echo
+dlog content of varsfile
+[ ! -z $_d ] && cat $varsfile && echo
 
 dlog content of defaults
 [ ! -z $_d ] && cat $defaults && echo
 
-# Print the script
+dlog -- start script --
 exec 5<&1
 exec 1> ./tmpfile
 
@@ -87,7 +87,7 @@ EOF
 
 
 IFS=$'\n'       # make newlines the only separator
-for j in $(cat $tmpfile)
+for j in $(cat $varsfile)
 do
     flag=$(echo $j | cut -c1)
     var=$(echo $j | cut -d' ' -f2)
