@@ -10,6 +10,8 @@
 ##           -d               enable debug logs [default:0]
 #
 # Changelog
+# 2017-07-09
+#   - Added ability to parse and apply default values in flag's description
 # 2017-01-20
 #   - script's output is copied in system clipboard
 # 2016-12-21
