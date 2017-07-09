@@ -47,14 +47,14 @@ dlog(){
     [ ! -z $_d ] && echo $@
 }
 
-varsfile=$(mktemp /tmp/getopt.XXX)
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>|\1: _\2=$OPTARG|p' | cut -d ' ' -f1,2 > $varsfile
+varsfile=$(mktemp /tmp/varsfile.XXX)
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>|\2: _\2=$OPTARG|p' | cut -d ' ' -f1,2 > $varsfile
 sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)|\1 _\1=1|p' | cut -d ' ' -f1,2 >> $varsfile
 
 flaglist=`cut -d ' ' -f1  $varsfile | tr -d '\n'`
 variables=`cut -d ' ' -f2  $varsfile`
 
-defaults=$(mktemp /tmp/getopt.XXX)
+defaults=$(mktemp /tmp/defaults.XXX)
 sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>\s*.*\[default:\s*\(\w\+\)\]|_\2=\3|p' > $defaults
 sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)\s*.*\[default:\s*\(\w\+\)\]|_\1=\2|p' >> $defaults
 
@@ -64,11 +64,8 @@ dlog content of varsfile
 dlog content of defaults
 [ ! -z $_d ] && cat $defaults && echo
 
-dlog -- start script --
 exec 5<&1
 exec 1> ./tmpfile
-
-# Setting default values.
 cat $defaults
 
 cat << EOF
@@ -84,7 +81,6 @@ while getopts 'h${flaglist}' OPT; do
             exit 1
             ;;
 EOF
-
 
 IFS=$'\n'       # make newlines the only separator
 for j in $(cat $varsfile)
@@ -108,7 +104,6 @@ cat << EOF
     esac
 done
 EOF
-rm $tmpfile
 
 # Show result in stdout
 cat ./tmpfile >&5
