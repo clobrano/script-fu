@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-## Helper script to autogenerate getopts code out of the target script's help message 
+## Helper script to autogenerate getopts code out of the target script's help message
 ## The script must contain a usage description with '##' at the beginning of each line (that is, like this one)
 ##
 ##      usage: getopt.sh [options]
 ##
 ##      options:
-##           -s <script_path> The path to the script to be parsed.
-##           -d               enable debug logs
+##           -s <script_path> The path to the script to be parsed
+##           -d               enable debug logs [default:0]
 #
 # Changelog
 # 2017-01-20
@@ -52,14 +52,29 @@ sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)|\1
 flaglist=`cut -d ' ' -f1  $tmpfile | tr -d '\n'`
 variables=`cut -d ' ' -f2  $tmpfile`
 
+defaults=$(mktemp /tmp/getopt.XXX)
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>\s*.*\[default:\s*\(\w\+\)\]|_\2=\3|p' > $defaults
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)\s*.*\[default:\s*\(\w\+\)\]|\1=\2|p' >> $defaults
+
 dlog content of tmpfile
 [ ! -z $_d ] && cat $tmpfile && echo
+
+dlog content of defaults
+[ ! -z $_d ] && cat $defaults && echo
 
 # Print the script
 exec 5<&1
 exec 1> ./tmpfile
+
+# Setting default values.
+cat $defaults
+
 cat << EOF
+
+# No-arguments is not allowed
 [ \$# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' \$0 && exit 1
+
+# Parsing flags and arguments
 while getopts 'h${flaglist}' OPT; do
     case \$OPT in
         h)
