@@ -55,8 +55,8 @@ flaglist=`cut -d ' ' -f1  $varsfile | tr -d '\n'`
 variables=`cut -d ' ' -f2  $varsfile`
 
 defaults=$(mktemp /tmp/defaults.XXX)
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>\s*.*\[default:\s*\(\w\+\)\]|_\2=\3|p' > $defaults
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)\s*.*\[default:\s*\(\w\+\)\]|_\1=\2|p' >> $defaults
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>\s*.*\[default:\s*\(.*\)\]|_\2=\3|p' > $defaults
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)\s*.*\[default:\s*\(.*\)\]|_\1=\2|p' >> $defaults
 
 dlog content of varsfile
 [ ! -z $_d ] && cat $varsfile && echo
@@ -66,7 +66,11 @@ dlog content of defaults
 
 exec 5<&1
 exec 1> ./tmpfile
-cat $defaults
+
+if [ $(cat $defaults | wc -l) -gt 0 ]; then
+    echo "# Default values"
+    cat $defaults
+fi
 
 cat << EOF
 
