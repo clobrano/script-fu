@@ -48,7 +48,7 @@ dlog(){
 }
 
 varsfile=$(mktemp /tmp/varsfile.XXX)
-sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>|\2: _\2=$OPTARG|p' | cut -d ' ' -f1,2 > $varsfile
+sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n 's|\(\w\)\s*<\(\w\+\)>|\1: _\2=$OPTARG|p' | cut -d ' ' -f1,2 > $varsfile
 sed -n 's_^##\s*-\(.*\)_\1_p' $_script_path | sed -n '/\w\s*<\w\+>/! s|\(\w\)|\1 _\1=1|p' | cut -d ' ' -f1,2 >> $varsfile
 
 flaglist=`cut -d ' ' -f1  $varsfile | tr -d '\n'`
