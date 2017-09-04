@@ -33,6 +33,8 @@ case $response in
     n|N)
         exit 0
         ;;
+    y|Y)
+        ;;
     *)
         echo please write y/Y or n/N
         exit 1
@@ -41,5 +43,6 @@ esac
 [ -e ${new_alias} ] && echo "${new_alias} already exists" && exit 1
 [ ! -d $HOME/.themes ] && echo "creating $HOME/.themes folder" && mkdir $HOME/.themes
 set -x
-ln -s ${CWD} ${new_alias}
+ln -s ${CWD}/Ambiance ${new_alias}_ambiance
+ln -s ${CWD}/Radiance ${new_alias}_radiance
 
