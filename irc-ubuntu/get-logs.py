@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vi: set ft=python :
 '''
@@ -11,8 +11,9 @@ options:
     -d DATE, --DATE=DATE            The DATE of the logs in format YYYY-MM-DD [default: today]
 '''
 
-import urllib2
+import sys
 import datetime
+import requests
 import docopt
 try:
     from raffaello import Raffaello, parse_request
@@ -38,7 +39,7 @@ clobrano=>green_bold
 '''
     RAFFAELLO = Raffaello(parse_request(REQUEST))
 except ImportError as error:
-    print 'could not colorize output: {}'.format(error)
+    print('could not colorize output: {}'.format(error))
     RAFFAELLO = None
 
 OPTS = docopt.docopt(__doc__)
@@ -52,20 +53,20 @@ URL = 'https://irclogs.ubuntu.com/{DATE}/%23{channel}.txt'.format(DATE=DATE, cha
 ALERT = False
 MESSAGES = []
 
-for line in urllib2.urlopen(URL):
+for line in requests.get(URL).text.split('\\n'):
     line = line.rstrip()
     if "lobrano" in line or "carlo" in line:
         ALERT = True
         MESSAGES.append(line)
     if RAFFAELLO:
-        print RAFFAELLO.paint(line)
+        print(RAFFAELLO.paint(line))
     else:
-        print line
+        print(line)
 
 if ALERT:
-    print "\nThere are messages for you"
+    print("\n\nThere are messages for you")
     for msg in MESSAGES:
         if RAFFAELLO:
-            print RAFFAELLO.paint(msg)
+            print(RAFFAELLO.paint(msg))
         else:
-            print msg
+            print(msg)
