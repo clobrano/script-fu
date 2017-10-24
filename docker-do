@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+## Helper script for docker based build machines. The $HOME/workspace is mounted on docker machine under the same path
+## (that must have been created first when building the docker image) and the CURRENT directory becomes the WORKING
+## directory inside docker.
+## usage: docker-do.sh [options]
+## options:
+##      -i <docker_image>   The docker image to use [default: libqmi]
+##      -c <command>        Command to execute in docker env. Some commands are extended: e.g. "checkinstall acquires --backup=no --pgkversion=0 -y" flags
+##      -r                  Static code review during build using scan-build
+##      -d                  Dry-run
+# Default values
+_docker_image=libqmi
+
+# No-arguments is not allowed
+[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
+
+# Parsing flags and arguments
+while getopts 'hi:c:rd' OPT; do
+    case $OPT in
+        h)
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+        i)
+            _docker_image=$OPTARG
+            ;;
+        c)
+            _command=$OPTARG
+            ;;
+        r)
+            _r=1
+            ;;
+        d)
+            _d=1
+            ;;
+        \?)
+            echo "---"
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+    esac
+done
+
+
+
+
+if [ ! -z "$_r" ] && [ "$_command" == "make" ]; then
+    _command="scan-build make"
+fi
+
+if [ "$_command" == "checkinstall" ]; then
+    _command="checkinstall --backup=no --pkgversion=0 -y"
+fi
+
+set -x
+docker run --rm -v $HOME/workspace:$HOME/workspace -w $(pwd) -it "$_docker_image" $_command
