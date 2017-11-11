@@ -7,13 +7,17 @@
 ## options:
 ##      -i <docker_image>   The docker image to use
 ##      -c <command>        Command to execute in docker env. Some commands are extended: e.g. "checkinstall acquires --backup=no --pgkversion=0 -y" flags
+##      -v <version>        Checkinstall's package version [default: 0]
 ##      -r                  Static code review during build using scan-build
 ##      -d                  Dry-run
+_version=0
+
+>>>>>>> 267124aef10a306b9bbb7b2aed9d4e3372c8d937
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
 
 # Parsing flags and arguments
-while getopts 'hi:c:rd' OPT; do
+while getopts 'hi:c:v:rd' OPT; do
     case $OPT in
         h)
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -24,6 +28,9 @@ while getopts 'hi:c:rd' OPT; do
             ;;
         c)
             _command=$OPTARG
+            ;;
+        v)
+            _version=$OPTARG
             ;;
         r)
             _r=1
@@ -39,19 +46,22 @@ while getopts 'hi:c:rd' OPT; do
     esac
 done
 
+<<<<<<< HEAD
 if [ -z "$_docker_image" ]; then
     cur=`pwd`
     _docker_image=`basename $cur`
     echo $_docker_image
 fi
 
+=======
+>>>>>>> 267124aef10a306b9bbb7b2aed9d4e3372c8d937
 
 if [ ! -z "$_r" ] && [ "$_command" == "make" ]; then
     _command="scan-build make"
 fi
 
 if [ "$_command" == "checkinstall" ]; then
-    _command="checkinstall --backup=no --pkgversion=0 -y"
+    _command="checkinstall --backup=no --pkgversion=$_version -y"
 fi
 
 set -x
