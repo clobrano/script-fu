@@ -12,7 +12,6 @@
 ##      -d                  Dry-run
 _version=0
 
->>>>>>> 267124aef10a306b9bbb7b2aed9d4e3372c8d937
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
 
