@@ -5,61 +5,61 @@
 ## directory inside docker.
 ## usage: docker-do.sh [options]
 ## options:
-##      -i <docker_image>   The docker image to use
-##      -c <command>        Command to execute in docker env. Some commands are extended (see "Extended commands" paragraph below)
-##      -v <version>        Checkinstall's package version [default: 0]
-##      -b <backup>         Checkinstall's backup flag [default: no]
-##      -r                  Static code review during build using scan-build
-##      -d                  Dry-run
-##
-## Extended command -> added flags:
-##   - checkinstall -> --backup=<configurable> --pgkversion=<configurable> -y
-##   - jekyll       -> --volume="$PWD:/srv/jekyll" jekyll build (depends on docker image jekyll/jekyll)
-
+##      -i, --image <docker_image>  The docker image to use
+##      -c, --command <command>     Command to execute in docker env. Some commands are extended: e.g. "checkinstall acquires --backup=no --pgkversion=0 -y" flags
+##      -s, --volumesrc <path>      Host volume to be mounted onto docker image [default: $HOME/workspace]
+##      -d, --volumedst <path>      Docker image mount point [default: $HOME/workspace]
+##      -b, --backup <value>        Checkinstall backup value (yes/no) [default: no]
+##      -v, --pkgversion <version>  Checkinstall pkgversion value [default: 0]
+##      -r                          Static code review during build using scan-build
+# GENERATED_CODE: start
 # Default values
-_version=0
+_volumesrc=$HOME/workspace
+_volumedst=$HOME/workspace
 _backup=no
+_pkgversion=0
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
 
+# Converting long-options into short ones
+for arg in "$@"; do
+  shift
+  case "$arg" in
+"--image") set -- "$@" "-i";;
+"--command") set -- "$@" "-c";;
+"--volumesrc") set -- "$@" "-s";;
+"--volumedst") set -- "$@" "-d";;
+"--backup") set -- "$@" "-b";;
+"--pkgversion") set -- "$@" "-v";;
+  *) set -- "$@" "$arg"
+  esac
+done
+
+function print_illegal() {
+    echo Unexpected flag in command line \"$@\"
+}
+
 # Parsing flags and arguments
-while getopts 'hi:c:v:b:rd' OPT; do
+while getopts 'hri:c:s:d:b:v:' OPT; do
     case $OPT in
-        h)
-            sed -ne 's/^## \(.*\)/\1/p' $0
-            exit 1
-            ;;
-        i)
-            _docker_image=$OPTARG
-            ;;
-        c)
-            _command=$OPTARG
-            ;;
-        v)
-            _version=$OPTARG
-            ;;
-        b)
-            _backup=$OPTARG
-            ;;
-        r)
-            _r=1
-            ;;
-        d)
-            _d=1
-            ;;
-        \?)
+        h) sed -ne 's/^## \(.*\)/\1/p' $0
+           exit 1 ;;
+        r) _r=1 ;;
+        i) _image=$OPTARG ;;
+        c) _command=$OPTARG ;;
+        s) _volumesrc=$OPTARG ;;
+        d) _volumedst=$OPTARG ;;
+        b) _backup=$OPTARG ;;
+        v) _pkgversion=$OPTARG ;;
+        \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
             exit 1
             ;;
     esac
 done
-
-# Default flags
-VOLUME="--volume=$HOME/workspace:$HOME/workspace"
-WORKDIR="--workdir=$PWD"
-
+# GENERATED_CODE: end
 
 if [ -z "$_docker_image" ]; then
     cur=`pwd`
@@ -72,17 +72,8 @@ if [ ! -z "$_r" ] && [ "$_command" == "make" ]; then
 fi
 
 if [ "$_command" == "checkinstall" ]; then
-    _command="checkinstall --backup=$_backup --pkgversion=$_version -y"
-fi
-
-if [ "$_command" == "jekyll" ]; then
-    export JEKYLL_VERSION=3.5
-    VOLUME=--volume="$PWD:/srv/jekyll"
-
-    _docker_image="jekyll/jekyll:$JEKYLL_VERSION"
-    _command="jekyll build"
+    _command="checkinstall --backup=$_backup --pkgversion=$_pkgversion -y"
 fi
 
 set -x
-docker run --rm "$VOLUME" "$WORKDIR" -it "$_docker_image" "$_command"
-
+docker run --rm -v "$_volumesrc":"$_volumedst" -w "$_volume_dst" -it "$_image" "$_command"
