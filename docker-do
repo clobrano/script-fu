@@ -5,13 +5,11 @@
 ## directory inside docker.
 ## usage: docker-do.sh [options]
 ## options:
-##      -i <docker_image>   The docker image to use [default: libqmi]
+##      -i <docker_image>   The docker image to use
 ##      -c <command>        Command to execute in docker env. Some commands are extended: e.g. "checkinstall acquires --backup=no --pgkversion=0 -y" flags
 ##      -v <version>        Checkinstall's package version [default: 0]
 ##      -r                  Static code review during build using scan-build
 ##      -d                  Dry-run
-# Default values
-_docker_image=libqmi
 _version=0
 
 # No-arguments is not allowed
@@ -47,6 +45,15 @@ while getopts 'hi:c:v:rd' OPT; do
     esac
 done
 
+<<<<<<< HEAD
+if [ -z "$_docker_image" ]; then
+    cur=`pwd`
+    _docker_image=`basename $cur`
+    echo $_docker_image
+fi
+
+=======
+>>>>>>> 267124aef10a306b9bbb7b2aed9d4e3372c8d937
 
 if [ ! -z "$_r" ] && [ "$_command" == "make" ]; then
     _command="scan-build make"
