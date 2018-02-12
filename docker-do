@@ -14,8 +14,8 @@
 ##      -r                          Static code review during build using scan-build
 # GENERATED_CODE: start
 # Default values
-_volumesrc=$HOME/workspace
-_volumedst=$HOME/workspace
+_volumesrc=$PWD
+_volumedst=$PWD
 _backup=no
 _pkgversion=0
 
@@ -76,4 +76,4 @@ if [ "$_command" == "checkinstall" ]; then
 fi
 
 set -x
-docker run --rm -v "$_volumesrc":"$_volumedst" -w "$_volume_dst" -it "$_image" "$_command"
+docker run --rm -v "$_volumesrc":"$_volumedst" -w "$_volumedst" -it "$_image" $_command
