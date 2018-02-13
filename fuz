@@ -8,8 +8,8 @@ main() {
   file_to_edit=`select_file $previous_file`
 
   if [ -n "$file_to_edit" ] ; then
-    gvim -f "$file_to_edit"
-    main "$file_to_edit"
+    gvim -f "$file_to_edit" &
+    #main "$file_to_edit"
   fi
 }
 
