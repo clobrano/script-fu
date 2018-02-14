@@ -11,6 +11,7 @@
 _edit=none
 _directory=.
 
+
 # Converting long-options into short ones
 for arg in "$@"; do
   shift
@@ -42,15 +43,20 @@ done
 # GENERATED_CODE: end
 
 set -e
+xclip=$(which xclip)
 
 main() {
   previous_file="$1"
   file_to_edit=`select_file $previous_file`
 
   if [ -n "$file_to_edit" ] && [ "$_edit" != none ] ; then
-    "$_edit" "$file_to_edit"
-  else
-    echo $file_to_edit
+      "$_edit" "$file_to_edit"
+    else if [ ! -z $xclip ]; then
+      echo $file_to_edit | tr -d '\n' | xclip -selection clipboard
+      echo "$file_to_edit is available in the clipboard"
+    else
+      echo $file_to_edit
+    fi
   fi
 }
 
