@@ -6,18 +6,16 @@
 ## usage: docker-do.sh [options]
 ## options:
 ##      -i, --image <docker_image>  The docker image to use
-##      -c, --command <command>     Command to execute in docker env. Some commands are extended: e.g. "checkinstall acquires --backup=no --pgkversion=0 -y" flags
-##      -s, --volumesrc <path>      Host volume to be mounted onto docker image [default: $HOME/workspace]
-##      -d, --volumedst <path>      Docker image mount point [default: $HOME/workspace]
-##      -b, --backup <value>        Checkinstall backup value (yes/no) [default: no]
-##      -v, --pkgversion <version>  Checkinstall pkgversion value [default: 0]
-##      -r                          Static code review during build using scan-build
+##      -b, --build                 Build and create a debian package (currently same as --command=make)
+##      -p, --package               Create a debian package
+##      -c, --command <command>     Command to execute in docker env
+##      -s, --src <path>            Host volume to be mounted onto docker image [default: `pwd`]
+##      -d, --dst <path>            Docker image mount point [default: `pwd`]
+
 # GENERATED_CODE: start
 # Default values
-_volumesrc=$PWD
-_volumedst=$PWD
-_backup=no
-_pkgversion=0
+_src=`pwd`
+_dst=`pwd`
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
@@ -27,11 +25,11 @@ for arg in "$@"; do
   shift
   case "$arg" in
 "--image") set -- "$@" "-i";;
+"--build") set -- "$@" "-b";;
+"--package") set -- "$@" "-p";;
 "--command") set -- "$@" "-c";;
-"--volumesrc") set -- "$@" "-s";;
-"--volumedst") set -- "$@" "-d";;
-"--backup") set -- "$@" "-b";;
-"--pkgversion") set -- "$@" "-v";;
+"--src") set -- "$@" "-s";;
+"--dst") set -- "$@" "-d";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -41,17 +39,16 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hri:c:s:d:b:v:' OPT; do
+while getopts 'hbpi:c:s:d:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
-        r) _r=1 ;;
+        b) _build=1 ;;
+        p) _package=1 ;;
         i) _image=$OPTARG ;;
         c) _command=$OPTARG ;;
-        s) _volumesrc=$OPTARG ;;
-        d) _volumedst=$OPTARG ;;
-        b) _backup=$OPTARG ;;
-        v) _pkgversion=$OPTARG ;;
+        s) _src=$OPTARG ;;
+        d) _dst=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -61,19 +58,14 @@ while getopts 'hri:c:s:d:b:v:' OPT; do
 done
 # GENERATED_CODE: end
 
-if [ -z "$_docker_image" ]; then
+if [ -z "$_image" ]; then
     cur=`pwd`
-    _docker_image=`basename $cur`
-    echo $_docker_image
+    _image=`basename $cur`
+    echo Looking for [$_image] as docker image
+    # TODO check whether the docker image actually exists before going forward
 fi
 
-if [ ! -z "$_r" ] && [ "$_command" == "make" ]; then
-    _command="scan-build make"
-fi
-
-if [ "$_command" == "checkinstall" ]; then
-    _command="checkinstall --backup=$_backup --pkgversion=$_pkgversion -y"
-fi
-
-set -x
-docker run --rm -v "$_volumesrc":"$_volumedst" -w "$_volumedst" -it "$_image" $_command
+DOCKER_RUN="docker run --rm -v $_src:$_dst -w $_dst -it $_image"
+[ ! -z $_command ] && set -x && exec $DOCKER_RUN $_command
+[ ! -z $_build ]   && set -x && exec $DOCKER_RUN make
+[ ! -z $_package ] && set -x && exec $DOCKER_RUN fpm -s dir -t deb -n $_image ./
