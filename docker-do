@@ -5,13 +5,12 @@
 ## directory inside docker.
 ## usage: docker-do.sh [options]
 ## options:
-##      -i, --image <docker_image>  The docker image to use
+##      -i, --image <name>          The docker image to use
 ##      -b, --build                 Build and create a debian package (currently same as --command=make)
 ##      -p, --package               Create a debian package
 ##      -c, --command <command>     Command to execute in docker env
 ##      -s, --src <path>            Host volume to be mounted onto docker image [default: `pwd`]
 ##      -d, --dst <path>            Docker image mount point [default: `pwd`]
-
 # GENERATED_CODE: start
 # Default values
 _src=`pwd`
@@ -60,12 +59,12 @@ done
 
 if [ -z "$_image" ]; then
     cur=`pwd`
-    _image=`basename $cur`
-    echo Looking for [$_image] as docker image
+    _docker=`basename $cur`
+    echo Looking for [$_docker] as docker image
     # TODO check whether the docker image actually exists before going forward
 fi
 
 DOCKER_RUN="docker run --rm -v $_src:$_dst -w $_dst -it $_image"
 [ ! -z $_command ] && set -x && exec $DOCKER_RUN $_command
 [ ! -z $_build ]   && set -x && exec $DOCKER_RUN make
-[ ! -z $_package ] && set -x && exec $DOCKER_RUN fpm -s dir -t deb -n $_image ./
+[ ! -z $_package ] && set -x && exec $DOCKER_RUN fpm -s dir -t deb -n $_docker ./
