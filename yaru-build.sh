@@ -2,22 +2,20 @@
 # -*- coding: UTF-8 -*-
 ## Helper script to streamline gtk/gnome-shell communitheme build and install
 ## options:
-##      -p, --project <name>    either gtk or shell (this is mapped to the folder name, so if you change default folders' names, this won't work anymore)
 ##      -d, --dotfiles <path>   path to dotfiles folders [default: ~/dotfiles]
+##      -p, --project <path>   path yaru folders [default: ~/workspace/yaru]
 
 # GENERATED_CODE: start
 # Default values
 _dotfiles=~/dotfiles
-
-# No-arguments is not allowed
-[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
+_project=~/workspace/yaru
 
 # Converting long-options into short ones
 for arg in "$@"; do
   shift
   case "$arg" in
-"--project") set -- "$@" "-p";;
 "--dotfiles") set -- "$@" "-d";;
+"--project") set -- "$@" "-p";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -27,12 +25,12 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hp:d:' OPT; do
+while getopts 'hd:p:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
-        p) _project=$OPTARG ;;
         d) _dotfiles=$OPTARG ;;
+        p) _project=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -42,8 +40,8 @@ while getopts 'hp:d:' OPT; do
 done
 # GENERATED_CODE: end
 
+
 _cmd="$_dotfiles/vim/vim/snippets/communitheme.py"
 
-set -x
-[ "$_project" = "gtk" ] && python "$_cmd" gtk-communitheme && theme-refresh.sh
-[ "$_project" = "shell" ] && python "$_cmd" gnome-shell-communitheme && echo "ALT-F2 + rt"
+set -xe
+python "$_cmd" "$_project" && echo "ALT-F2 + rt"
