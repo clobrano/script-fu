@@ -45,3 +45,4 @@ _cmd="$_dotfiles/vim/vim/snippets/communitheme.py"
 
 set -xe
 python "$_cmd" "$_project" && echo "ALT-F2 + rt"
+theme-toggle.sh
