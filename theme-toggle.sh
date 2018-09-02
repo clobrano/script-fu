@@ -3,5 +3,4 @@
 current=$(gsettings get org.gnome.desktop.interface gtk-theme)
 set -x
 gsettings set org.gnome.desktop.interface gtk-theme Adwaita
-sleep 1
 gsettings set org.gnome.desktop.interface gtk-theme $current
