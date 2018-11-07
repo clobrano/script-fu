@@ -44,4 +44,5 @@ done
 # GENERATED_CODE: end
 
 size=$(xrandr | awk '/ connected/{print $4}' | cut -d'+' -f1)
+set -xe
 ffmpeg -f x11grab -s $size -i $_display $_file
