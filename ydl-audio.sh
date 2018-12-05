@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 ## options
-##     -f, --format <format> Audio format (opus|mp3)
+##     -f, --format <format> Audio format (opus|mp3) [default: opus]
 ##     -u, --url <url>
 # GENERATED_CODE: start
+# Default values
+_format=opus
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
