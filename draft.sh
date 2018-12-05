@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 ## Simple and lazy script to write NEOVIM draft in $HOME/.drafts folder
-set -e
+set -eu
 NAME=$1
 
 [ ! -d ${HOME}/.drafts ] && mkdir ${HOME}/.drafts
