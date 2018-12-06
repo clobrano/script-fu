@@ -1,0 +1,9 @@
+#!/usr/bin/expect
+
+set f [open "~/.credentials"]
+set password [read $f]
+spawn yaru-build.sh
+
+expect "password for"
+send "$password\r"
+interact
