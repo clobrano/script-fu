@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-## Helper script to record the screen using ffmpeg (and xandr)
-## usage:
-## options:
-##      -f, --file <path>   Output file path
-##      -d, --display <id>  Display to record [default: :0.0]
-
+## Simple and lazy script to write NEOVIM draft in $HOME/.drafts folder
+## options
+##   -t, --topic <name>      Name of the draft. It will be used as file name
+##   -f, --folder <path>     Path to the folder that will contain the draft folder [default: ~]
 # GENERATED_CODE: start
 # Default values
-_display=:0.0
+_folder=~
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
@@ -17,8 +15,8 @@ _display=:0.0
 for arg in "$@"; do
   shift
   case "$arg" in
-"--file") set -- "$@" "-f";;
-"--display") set -- "$@" "-d";;
+"--topic") set -- "$@" "-t";;
+"--folder") set -- "$@" "-f";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -28,12 +26,12 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hf:d:' OPT; do
+while getopts 'ht:f:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
-        f) _file=$OPTARG ;;
-        d) _display=$OPTARG ;;
+        t) _topic=$OPTARG ;;
+        f) _folder=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -43,6 +41,8 @@ while getopts 'hf:d:' OPT; do
 done
 # GENERATED_CODE: end
 
-size=$(xrandr | awk '/ connected/{print $4}' | cut -d'+' -f1)
-set -xe
-ffmpeg -f x11grab -s $size -i $_display $_file
+set -eu
+
+[ ! -d ${_folder}/.drafts ] && mkdir ${_folder}/.drafts
+nvim -c "Writer" ${_folder}/.drafts/$_topic.md
+
