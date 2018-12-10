@@ -43,6 +43,10 @@ done
 
 set -eu
 
+
 [ ! -d ${_folder}/.drafts ] && mkdir ${_folder}/.drafts
+
+file=${_folder}/.drafts/$_topic.md
+[ ! -f "$file" ] && echo "# $_topic" > $file
 nvim -c "Writer" ${_folder}/.drafts/$_topic.md
 
