@@ -46,7 +46,8 @@ set -xe
 cd $HOME/.ssh
 
 ssh-keygen -o -t rsa -b 4096 -C "$_email" -f $_name
+ssh-add $_name
+xclip -sel clip < $_name.pub
 
 cd -
 
-xclip -sel clip < $HOME/.ssh/$_name.pub
