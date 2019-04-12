@@ -8,6 +8,9 @@ loop = GObject.MainLoop()
 
 launcher = Unity.LauncherEntry.get_for_desktop_id ("update-manager.desktop")
 
+launcher.set_property("count", 1241201)
+launcher.set_property("count_visible", True)
+
 i = 0.0
 def progressbar():
     global i
