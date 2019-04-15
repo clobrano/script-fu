@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-## Helper script to speed up ssh keys generation for services like gitlab and github
-## options
-## -n, --name <string>      Private key name [default: id_rsa]
-## -e, --email <string>     Email to associate with the key
+## option
+## -d, --data <hex> sequence of hex bytes (e.g. 0x44,0x47,0x4e)
+## -s, --sep <char> separator character [default: ,]
 # GENERATED_CODE: start
 # Default values
-_name=id_rsa
+_sep=,
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
@@ -15,8 +14,8 @@ _name=id_rsa
 for arg in "$@"; do
   shift
   case "$arg" in
-"--name") set -- "$@" "-n";;
-"--email") set -- "$@" "-e";;
+"--data") set -- "$@" "-d";;
+"--sep") set -- "$@" "-s";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -26,12 +25,12 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hn:e:' OPT; do
+while getopts 'hd:s:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
-        n) _name=$OPTARG ;;
-        e) _email=$OPTARG ;;
+        d) _data=$OPTARG ;;
+        s) _sep=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -41,13 +40,9 @@ while getopts 'hn:e:' OPT; do
 done
 # GENERATED_CODE: end
 
-set -xe
-
-cd $HOME/.ssh
-
-ssh-keygen -o -t rsa -b 4096 -C "$_email" -f $_name
-ssh-add $_name
-xclip -sel clip < $_name.pub
-
-cd -
-
+TESTDATA=$(echo "$_data" | tr "$_sep" ' ')
+echo parsing:\'$TESTDATA\', with separator:\'$_sep\'
+for c in $TESTDATA; do
+    echo $c | xxd -r
+done
+echo ''
