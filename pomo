@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+## Simple interface to `at` to allow the usage as a pomodoro timer.
+## usage:
+##    pomo help     Show this message
+##    pomo start
+##    pomo alt
+##    pomo
+
+function help() {
+    cat $0 | grep -e "^##"
+}
+
+function begin() {
+    echo start
+}
+
+function end() {
+    echo stop
+}
+
+function status() {
+    echo status
+    echo "run pomo help for usage"
+}
+
+cmd=$1
+[ "$cmd" = "" ] && echo status && exit 0
+case $cmd in
+    "begin") begin;;
+    "end") end;;
+    "help") help;;
+    *) status
+esac
+
+
