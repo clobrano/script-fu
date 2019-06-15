@@ -42,7 +42,7 @@ done
 # GENERATED_CODE: end
 
 [[ $_all || $_github ]] && {
-    ssh-add  ~/.ssh/github/id_rsa
+    ssh-add  ~/.ssh/github_id_rsa
 }
 
 [[ $_all || $_launchpad ]] && {
