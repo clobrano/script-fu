@@ -4,9 +4,14 @@
 ## options
 ## -u, --user <string> username [default: carlolo]
 ## -a, --address <ip>
+## -s, --source <path>
+## -d, --destination <path>
 # GENERATED_CODE: start
 # Default values
 _user=carlolo
+
+# No-arguments is not allowed
+[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
 
 # Converting long-options into short ones
 for arg in "$@"; do
@@ -14,6 +19,8 @@ for arg in "$@"; do
   case "$arg" in
 "--user") set -- "$@" "-u";;
 "--address") set -- "$@" "-a";;
+"--source") set -- "$@" "-s";;
+"--destination") set -- "$@" "-d";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -23,12 +30,14 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hu:a:' OPT; do
+while getopts 'hu:a:s:d:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
         u) _user=$OPTARG ;;
         a) _address=$OPTARG ;;
+        s) _source=$OPTARG ;;
+        d) _destination=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -39,4 +48,4 @@ done
 # GENERATED_CODE: end
 
 
-ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no $_user@$_address
+scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "$_source"$_user@$_address:"$_destination"
