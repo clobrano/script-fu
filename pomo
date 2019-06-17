@@ -7,16 +7,25 @@
 ##    pomo alt
 ##    pomo
 
+# environment variables
+_work_session_time=${POMO_WORK_SESSION_TIME:-25}
+_pause_session_time=${POMO_PAUSE_SESSION_TIME:-5}
+_log_session_path=${POMO_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/pomo-session-log.txt}
+
+
+# functions
 function help() {
     cat $0 | grep -e "^##"
 }
 
 function begin() {
-    echo start
+    d=[[:digit:]]
+    session_start_time=`LC_ALL=en_US.utf8 date +"%a %b %d %H:%M:%S %Y"`
+    echo "notify-send -i time -c urgent 'work session ended'" | at now + $_work_session_time min >/tmp/pomo.log
 }
 
 function end() {
-    echo stop
+    echo end
 }
 
 function status() {
@@ -24,6 +33,7 @@ function status() {
     echo "run pomo help for usage"
 }
 
+# main
 cmd=$1
 [ "$cmd" = "" ] && echo status && exit 0
 case $cmd in
