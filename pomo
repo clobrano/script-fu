@@ -29,18 +29,19 @@ function end() {
 }
 
 function status() {
-    echo status
+    atq
     echo "run pomo help for usage"
 }
 
 # main
 cmd=$1
-[ "$cmd" = "" ] && echo status && exit 0
+[ "$cmd" = "" ] && status && exit 0
 case $cmd in
     "begin") begin;;
     "end") end;;
     "help") help;;
-    *) status
+    "status") status;;
+    *) status;;
 esac
 
 
