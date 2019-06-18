@@ -4,7 +4,6 @@
 ## usage:
 ##    pomo help     Show this message
 ##    pomo start
-##    pomo alt
 ##    pomo
 
 # environment variables
@@ -24,10 +23,6 @@ function begin() {
     echo "notify-send -i time -c urgent 'work session ended'; echo pomo completed, $session_start_time, $_work_session_time min>> $_log_session_path" | at now + $_work_session_time min >/tmp/pomo.log
 }
 
-function end() {
-    echo end
-}
-
 function status() {
     atq
     echo "run pomo help for usage"
@@ -38,7 +33,6 @@ cmd=$1
 [ "$cmd" = "" ] && status && exit 0
 case $cmd in
     "begin") begin;;
-    "end") end;;
     "help") help;;
     "status") status;;
     *) status;;
