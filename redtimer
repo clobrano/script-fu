@@ -17,12 +17,12 @@ _log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/redtim
 
 # functions
 function help() {
-    cat $0 | grep -e "^##"
+    cat -v $0 | grep -e "^##"
 }
 
 function work() {
     session_start_time=`LC_ALL=en_US.utf8 date +"%a %b %d %H:%M:%S %Y"`
-    msg="notify-send -i time -c urgent 'work session ended' && echo work completed, $session_start_time, $_work_session_time min >> $_log_session_path && rm -f /tmp/redtimer-work-job"
+    msg="notify-send -i time -c urgent 'work session ended' && echo work completed, $session_start_time + $_work_session_time min >> $_log_session_path && rm -f /tmp/redtimer-work-job"
     job_id=`echo "$msg" | at now + $_work_session_time min 2>&1 >/dev/null | grep job | cut -d" " -f2`
     echo "$job_id" > /tmp/redtimer-work-job
     status
@@ -37,16 +37,16 @@ function pause() {
 
 function alt() {
     msg=""
-    [ -f /tmp/redtimer-work-job ]  && msg+="work"  && job_id=`cat /tmp/redtimer-work-job`  && rm /tmp/redtimer-work-job
-    [ -f /tmp/redtimer-pause-job ] && msg+="pause" && job_id=`cat /tmp/redtimer-pause-job` && rm /tmp/redtimer-pause-job
+    [ -f /tmp/redtimer-work-job ]  && msg+="work"  && job_id=`cat -v /tmp/redtimer-work-job`  && rm /tmp/redtimer-work-job
+    [ -f /tmp/redtimer-pause-job ] && msg+="pause" && job_id=`cat -v /tmp/redtimer-pause-job` && rm /tmp/redtimer-pause-job
     [ ! -z $job_id ] && atrm $job_id && echo "+ $msg session stopped" && return
     echo "+ no redtimer found"
 }
 
 function status() {
     msg=""
-    [ -f /tmp/redtimer-work-job ] && msg+="$_work_session_time min work" && job_id=`cat /tmp/redtimer-work-job`
-    [ -f /tmp/redtimer-pause-job ] && msg+="$_pause_session_time min pause" && job_id=`cat /tmp/redtimer-pause-job`
+    [ -f /tmp/redtimer-work-job ] && msg+="$_work_session_time min work" && job_id=`cat -v /tmp/redtimer-work-job`
+    [ -f /tmp/redtimer-pause-job ] && msg+="$_pause_session_time min pause" && job_id=`cat -v /tmp/redtimer-pause-job`
 
     [ ! -z $job_id ] && end_time=`atq | grep $job_id | cut -d" " -f2,3,4,5`
     [ "$end_time" = "" ] && echo "+ no redtimer running"
@@ -55,20 +55,22 @@ function status() {
 
 function log() {
     search="$@"
+    [ ! -f  "$_log_session_path" ] && touch "$_log_session_path"
     if [ "$search" = "" ]; then
         echo "showing full redtimer log history"
-        cat "$_log_session_path"
-        n=`cat "$_log_session_path" | wc -l`
+        cat -v "$_log_session_path"
+        n=`cat -v "$_log_session_path" | wc -l`
         echo "$n session(s) completed"
     else
         echo "showing \"$search\" in redtimer history"
-        cat "$_log_session_path" | grep "$search"
-        n=`cat "$_log_session_path" | grep "$search" | wc -l`
+        cat -v "$_log_session_path" | grep "$search"
+        n=`cat -v "$_log_session_path" | grep "$search" | wc -l`
         echo "$n session(s) completed"
     fi
 }
 
 # main
+set -e
 cmd=$1
 [ "$cmd" = "" ] && status && echo "- run 'redtimer help' for usage -" && exit 0
 case $cmd in
