@@ -34,8 +34,17 @@ function status() {
 
 function log() {
     search="$@"
-    [ "$search" = "" ] && echo "showing full redtimer log history" && cat "$_log_session_path" && exit 0
-    echo "showing \"$search\" in redtimer history" && cat "$_log_session_path" | grep "$search"
+    if [ "$search" = "" ]; then
+        echo "showing full redtimer log history"
+        cat "$_log_session_path"
+        n=`cat "$_log_session_path" | wc -l`
+        echo "$n session(s) completed"
+    else
+        echo "showing \"$search\" in redtimer history"
+        cat "$_log_session_path" | grep "$search"
+        n=`cat "$_log_session_path" | grep "$search" | wc -l`
+        echo "$n session(s) completed"
+    fi
 }
 
 # main
