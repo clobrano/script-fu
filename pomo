@@ -3,7 +3,7 @@
 ## Simple interface to `at` to allow the usage as a pomodoro timer.
 ## usage:
 ##    pomo help     Show this message
-##    pomo start
+##    pomo begin
 ##    pomo
 
 # environment variables
