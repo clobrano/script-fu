@@ -2,15 +2,15 @@
 # -*- coding: UTF-8 -*-
 ## Simple interface to `at` to allow the usage as a pomodoro timer.
 ## usage:
-##    pomo help           Show this message
-##    pomo begin
-##    pomo log [search] Show pomo log, eventually filtered by search term
-##    pomo
+##    redtimer help           Show this message
+##    redtimer begin
+##    redtimer log [search] Show pomo log, eventually filtered by search term
+##    redtimer
 
 # environment variables
-_work_session_time=${POMO_WORK_SESSION_TIME:-25}
-_pause_session_time=${POMO_PAUSE_SESSION_TIME:-5}
-_log_session_path=${POMO_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/pomo-session-log.txt}
+_work_session_time=${REDTIMER_WORK_SESSION_TIME:-25}
+_pause_session_time=${REDTIMER_PAUSE_SESSION_TIME:-5}
+_log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/pomo-session-log.txt}
 
 
 # functions
