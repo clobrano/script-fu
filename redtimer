@@ -3,14 +3,14 @@
 ## Simple interface to `at` to allow the usage as a pomodoro timer.
 ## usage:
 ##    redtimer help           Show this message
-##    redtimer begin
-##    redtimer log [search] Show pomo log, eventually filtered by search term
+##    redtimer work
+##    redtimer log [search] Show redtimer log, eventually filtered by search term
 ##    redtimer
 
 # environment variables
 _work_session_time=${REDTIMER_WORK_SESSION_TIME:-25}
 _pause_session_time=${REDTIMER_PAUSE_SESSION_TIME:-5}
-_log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/pomo-session-log.txt}
+_log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/redtimer-session-log.txt}
 
 
 # functions
@@ -18,28 +18,32 @@ function help() {
     cat $0 | grep -e "^##"
 }
 
-function begin() {
-    d=[[:digit:]]
+function work() {
     session_start_time=`LC_ALL=en_US.utf8 date +"%a %b %d %H:%M:%S %Y"`
-    echo "notify-send -i time -c urgent 'work session ended'; echo pomo completed, $session_start_time, $_work_session_time min>> $_log_session_path" | at now + $_work_session_time min >/tmp/pomo.log
+    echo "notify-send -i time -c urgent 'work session ended'; echo work completed, $session_start_time, $_work_session_time min>> $_log_session_path" | at now + $_work_session_time min
+}
+
+function pause() {
+    echo "notify-send -i time -c urgent 'pause ended'" | at now + $_pause_session_time min
 }
 
 function status() {
     atq
-    echo "run pomo help for usage"
+    echo "run redtimer help for usage"
 }
 
 function log() {
     search="$@"
-    [ "$search" = "" ] && echo "showing full pomo log history" && cat "$_log_session_path" && exit 0
-    echo "showing \"$search\" in pomo history" && cat "$_log_session_path" | grep "$search"
+    [ "$search" = "" ] && echo "showing full redtimer log history" && cat "$_log_session_path" && exit 0
+    echo "showing \"$search\" in redtimer history" && cat "$_log_session_path" | grep "$search"
 }
 
 # main
 cmd=$1
 [ "$cmd" = "" ] && status && exit 0
 case $cmd in
-    "begin") begin;;
+    "work") work;;
+    "pause") pause;;
     "log") log ${@:2};;
     "help") help;;
     "status") status;;
