@@ -3,9 +3,11 @@
 ## Simple interface to `at` to allow the usage as a pomodoro timer.
 ## usage:
 ##    redtimer help           Show this message
-##    redtimer work
-##    redtimer log [search] Show redtimer log, eventually filtered by search term
-##    redtimer
+##    redtimer work           Start work session
+##    redtimer pause          Take a break
+##    redtimer alt            Stop redtimer
+##    redtimer log [search]   Show redtimer log, eventually filtered by search term
+##    redtimer                Show running redtimer
 
 # environment variables
 _work_session_time=${REDTIMER_WORK_SESSION_TIME:-25}
@@ -20,16 +22,35 @@ function help() {
 
 function work() {
     session_start_time=`LC_ALL=en_US.utf8 date +"%a %b %d %H:%M:%S %Y"`
-    echo "notify-send -i time -c urgent 'work session ended'; echo work completed, $session_start_time, $_work_session_time min>> $_log_session_path" | at now + $_work_session_time min
+    msg="notify-send -i time -c urgent 'work session ended' && echo work completed, $session_start_time, $_work_session_time min >> $_log_session_path && rm -f /tmp/redtimer-work-job"
+    job_id=`echo "$msg" | at now + $_work_session_time min 2>&1 >/dev/null | grep job | cut -d" " -f2`
+    echo "$job_id" > /tmp/redtimer-work-job
+    status
 }
 
 function pause() {
-    echo "notify-send -i time -c urgent 'pause ended'" | at now + $_pause_session_time min
+    msg="notify-send -i time -c urgent 'pause ended' && rm -f /tmp/redtimer-pause-job"
+    job_id=`echo "$msg" | at now + $_pause_session_time min 2>&1 >/dev/null | grep job | cut -d" " -f2`
+    echo "$job_id" > /tmp/redtimer-pause-job
+    status
+}
+
+function alt() {
+    msg=""
+    [ -f /tmp/redtimer-work-job ]  && msg+="work"  && job_id=`cat /tmp/redtimer-work-job`  && rm /tmp/redtimer-work-job
+    [ -f /tmp/redtimer-pause-job ] && msg+="pause" && job_id=`cat /tmp/redtimer-pause-job` && rm /tmp/redtimer-pause-job
+    [ ! -z $job_id ] && atrm $job_id && echo "+ $msg session stopped" && return
+    echo "+ no redtimer found"
 }
 
 function status() {
-    atq
-    echo "run redtimer help for usage"
+    msg=""
+    [ -f /tmp/redtimer-work-job ] && msg+="$_work_session_time min work" && job_id=`cat /tmp/redtimer-work-job`
+    [ -f /tmp/redtimer-pause-job ] && msg+="$_pause_session_time min pause" && job_id=`cat /tmp/redtimer-pause-job`
+
+    [ ! -z $job_id ] && end_time=`atq | grep $job_id | cut -d" " -f2,3,4,5`
+    [ "$end_time" = "" ] && echo "+ no redtimer running"
+    [ ! "$end_time" = "" ] && echo "+ $msg session will end at $end_time"
 }
 
 function log() {
@@ -49,14 +70,15 @@ function log() {
 
 # main
 cmd=$1
-[ "$cmd" = "" ] && status && exit 0
+[ "$cmd" = "" ] && status && echo "- run 'redtimer help' for usage -" && exit 0
 case $cmd in
     "work") work;;
     "pause") pause;;
+    "alt") alt;;
     "log") log ${@:2};;
     "help") help;;
     "status") status;;
-    *) status;;
+    *) echo "- run 'redtimer help' for usage -";;
 esac
 
 
