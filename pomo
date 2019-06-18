@@ -2,8 +2,9 @@
 # -*- coding: UTF-8 -*-
 ## Simple interface to `at` to allow the usage as a pomodoro timer.
 ## usage:
-##    pomo help     Show this message
+##    pomo help           Show this message
 ##    pomo begin
+##    pomo log [search] Show pomo log, eventually filtered by search term
 ##    pomo
 
 # environment variables
@@ -28,11 +29,18 @@ function status() {
     echo "run pomo help for usage"
 }
 
+function log() {
+    search="$@"
+    [ "$search" = "" ] && echo "showing full pomo log history" && cat "$_log_session_path" && exit 0
+    echo "showing \"$search\" in pomo history" && cat "$_log_session_path" | grep "$search"
+}
+
 # main
 cmd=$1
 [ "$cmd" = "" ] && status && exit 0
 case $cmd in
     "begin") begin;;
+    "log") log ${@:2};;
     "help") help;;
     "status") status;;
     *) status;;
