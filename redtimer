@@ -21,6 +21,8 @@ function help() {
 }
 
 function work() {
+    [ -f  /tmp/redtimer-work-job ] && echo "+ a timer is already running" && exit 1
+    [ -f  /tmp/redtimer-pause-job ] && echo "+ a timer is already running" && exit 1
     session_start_time=`LC_ALL=en_US.utf8 date +"%a %b %d %H:%M:%S %Y"`
     msg="notify-send -i time -c urgent 'work session ended' && echo work completed, $session_start_time + $_work_session_time min >> $_log_session_path && rm -f /tmp/redtimer-work-job"
     job_id=`echo "$msg" | at now + $_work_session_time min 2>&1 >/dev/null | grep job | cut -d" " -f2`
@@ -29,6 +31,8 @@ function work() {
 }
 
 function pause() {
+    [ -f  /tmp/redtimer-work-job ] && echo "+ a timer is already running" && exit 1
+    [ -f  /tmp/redtimer-pause-job ] && echo "+ a timer is already running" && exit 1
     msg="notify-send -i time -c urgent 'pause ended' && rm -f /tmp/redtimer-pause-job"
     job_id=`echo "$msg" | at now + $_pause_session_time min 2>&1 >/dev/null | grep job | cut -d" " -f2`
     echo "$job_id" > /tmp/redtimer-pause-job
