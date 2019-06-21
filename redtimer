@@ -5,7 +5,7 @@
 ##    redtimer help           Show this message
 ##    redtimer work           Start work session
 ##    redtimer pause          Take a break
-##    redtimer halt           Stop redtimer
+##    redtimer end            Stop redtimer
 ##    redtimer log [search]   Show redtimer log, eventually filtered by search term
 ##    redtimer                Show running redtimer
 
@@ -35,7 +35,7 @@ function pause() {
     status
 }
 
-function halt() {
+function end() {
     msg=""
     [ -f /tmp/redtimer-work-job ]  && msg+="work"  && job_id=`cat -v /tmp/redtimer-work-job`  && rm /tmp/redtimer-work-job
     [ -f /tmp/redtimer-pause-job ] && msg+="pause" && job_id=`cat -v /tmp/redtimer-pause-job` && rm /tmp/redtimer-pause-job
@@ -76,7 +76,7 @@ cmd=$1
 case $cmd in
     work|wor|wo|w) work;;
     pause|paus|pau|pa|p) pause;;
-    halt|hal|ha|h) halt;;
+    end|en|e) end;;
     log|lo|l) log ${@:2};;
     help|hel|he|h) help;;
     status|statu|stat|sta|st|s) status;;
