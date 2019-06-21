@@ -74,12 +74,12 @@ set -e
 cmd=$1
 [ "$cmd" = "" ] && status && echo "- run 'redtimer help' for usage -" && exit 0
 case $cmd in
-    "work") work;;
-    "pause") pause;;
-    "halt") halt;;
-    "log") log ${@:2};;
-    "help") help;;
-    "status") status;;
+    work|wor|wo|w) work;;
+    pause|paus|pau|pa|p) pause;;
+    halt|hal|ha|h) halt;;
+    log|lo|l) log ${@:2};;
+    help|hel|he|h) help;;
+    status|statu|stat|sta|st|s) status;;
     *) echo "- run 'redtimer help' for usage -";;
 esac
 
