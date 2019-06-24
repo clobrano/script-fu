@@ -2,12 +2,12 @@
 # -*- coding: UTF-8 -*-
 ## Helper script to streamline gtk/gnome-shell communitheme build and install
 ## options:
-##      -d, --dotfiles <path>   path to dotfiles folders [default: ~/dotfiles]
+##      -d, --dotfiles <path>   path to dotfiles folders [default: ~/.dotfiles]
 ##      -p, --project <path>   path yaru folders [default: ~/workspace/yaru]
 
 # GENERATED_CODE: start
 # Default values
-_dotfiles=~/dotfiles
+_dotfiles=~/.dotfiles
 _project=~/workspace/yaru
 
 # Converting long-options into short ones
