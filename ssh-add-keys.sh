@@ -41,10 +41,9 @@ while getopts 'hagl' OPT; do
 done
 # GENERATED_CODE: end
 
-[[ $_all || $_github ]] && {
-    ssh-add  ~/.ssh/github_id_rsa
-}
-
-[[ $_all || $_launchpad ]] && {
-    ssh-add  ~/.ssh/launchpad/id_rsa_lp
-}
+if [[ $_all ]]; then
+    for file in $(ls ~/.ssh/ | grep -v pub | grep -v known_hosts); do
+        echo adding ~/.ssh/$file
+        ssh-add ~/.ssh/$file
+    done
+fi
