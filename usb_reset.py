@@ -10,6 +10,7 @@ USBDEVFS_RESET = 21780
 if __name__ == '__main__':
     driver = sys.argv[-1]
     print("resetting driver: %s" % driver)
+    input()
 
     try:
         lsusb_out = Popen('lsusb | grep -i %s' % driver, shell=True, bufsize=64, stdin=PIPE, stdout=PIPE, close_fds=True).stdout.read().strip().split()
