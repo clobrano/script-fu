@@ -48,4 +48,5 @@ done
 # GENERATED_CODE: end
 
 
-scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "$_source"$_user@$_address:"$_destination"
+set -x
+scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "$_source" $_user@$_address:"$_destination"
