@@ -10,10 +10,9 @@
 ##    redtimer                Show running redtimer
 
 # environment variables
-_work_session_time=${REDTIMER_WORK_SESSION_TIME:-25}
-_pause_session_time=${REDTIMER_PAUSE_SESSION_TIME:-5}
-_log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/Dropbox/Work/sideproject/redtimer-session-log.txt}
-
+_work_session_time=${REDTIMER_WORK_SESSION_TIME:-35}
+_pause_session_time=${REDTIMER_PAUSE_SESSION_TIME:-10}
+_log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/MyBox/Work/sideproject/redtimer-session-log.txt}
 
 # functions
 function help() {
