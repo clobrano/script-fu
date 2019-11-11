@@ -3,16 +3,27 @@
 ## Simple interface to `at` to allow the usage as a pomodoro timer.
 ## usage:
 ##    redtimer help           Show this message
-##    redtimer work           Start work session
-##    redtimer pause          Take a break
+##    redtimer work [min]     Start work session
+##    redtimer pause [min]    Take a break
 ##    redtimer end            Stop redtimer
 ##    redtimer log [search]   Show redtimer log, eventually filtered by search term
 ##    redtimer                Show running redtimer
+
+# Time duration setting hierarchy:
+# 1. user input if provided
+# 2. environment variables if set
+# 3. script defaults
 
 # environment variables
 _work_session_time=${REDTIMER_WORK_SESSION_TIME:-35}
 _pause_session_time=${REDTIMER_PAUSE_SESSION_TIME:-10}
 _log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/MyBox/Work/sideproject/redtimer-session-log.txt}
+
+# user input
+if [[ ! -z $2 ]]; then
+    _work_session_time=$2
+    _pause_session_time=$2
+fi
 
 # functions
 function help() {
@@ -48,12 +59,25 @@ function end() {
 
 function status() {
     msg=""
-    [ -f /tmp/redtimer-work-job ] && msg+="$_work_session_time min work" && job_id=`cat -v /tmp/redtimer-work-job`
-    [ -f /tmp/redtimer-pause-job ] && msg+="$_pause_session_time min pause" && job_id=`cat -v /tmp/redtimer-pause-job`
+    [ -f /tmp/redtimer-work-job ] && msg+="work"
+    [ -f /tmp/redtimer-pause-job ] && msg+="pause"
 
-    [ ! -z $job_id ] && end_time=`atq | grep $job_id | cut -d" " -f2,3,4,5`
+    job_id=$(get_job_id)
+    [ ! -z $job_id ] && end_time=`get_end_time $job_id`
     [ "$end_time" = "" ] && echo "+ no redtimer running"
     [ ! "$end_time" = "" ] && echo "+ $msg session will end at $end_time"
+}
+
+function get_job_id() {
+    [ -f /tmp/redtimer-work-job ] && job_id=`cat -v /tmp/redtimer-work-job`
+    [ -f /tmp/redtimer-pause-job ] && job_id=`cat -v /tmp/redtimer-pause-job`
+    echo "$job_id"
+}
+
+function get_end_time() {
+    job_id=$1
+    end_time=`atq | grep $job_id | cut -d" " -f2,3,4,5`
+    echo "$end_time"
 }
 
 function log() {
