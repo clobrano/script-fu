@@ -60,11 +60,11 @@ for f in $(ls -tr $_path); do
     no_matches=$(grep -e "^#" $f | wc -l)
 
     if [ $no_matches -gt 0 ]; then
-        printf "\n%s %s\n" $time $f;
+        printf "\n# %s %s\n" $time $f;
         matches=$(grep -e "^#" $f)
         while IFS= read
         do
-            echo "  " $REPLY
+            echo "- ${REPLY//\#/}"
         done <<< "$matches"
     fi
 done
