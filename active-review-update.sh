@@ -52,6 +52,8 @@ if [ ! -z $_output ]; then
     exec 1<>$_output
 fi
 
+echo "Active review table at" $(date)
+
 for f in $(ls -tr $_path); do
     if [ $f == $_output ]; then
         continue

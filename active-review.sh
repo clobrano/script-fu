@@ -59,11 +59,12 @@ for f in $(ls -tr $_path); do
     no_matches=$(grep @@ $f | wc -l)
 
     if [ $no_matches -gt 0 ]; then
-        printf "\n%s %s\n" $time $f;
+        printf "#%s %s\n" $time $f;
         matches=$(grep @@ $f)
         while IFS= read
         do
-            echo "  " $REPLY
+            echo "-" $REPLY
         done <<< "$matches"
+        echo ""
     fi
 done
