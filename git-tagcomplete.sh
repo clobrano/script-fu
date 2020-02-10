@@ -70,15 +70,15 @@ if [ -z $_delete ]; then
         echo [press ENTER to continue]
     fi
     read
-    [ -z "$_message" ] && echo "annotation message is mandatory" && exit 1
+    [ ! -z "$_message" ] && annotation="-m $_message" || annotation=
     set -x
-    $dryrun git tag -a $_tag -m "$_message" $_commit
+    $dryrun git tag -a $_tag $annotation $_commit
     $dryrun git push origin $_tag
     set +x
 else
     echo are you sure to delete tag "$_tag" [press ENTER to continue]?
     read
-    set -x
+    set -x +e
     $dryrun git push --delete origin $_tag
     $dryrun git tag --delete $_tag
     set +x
