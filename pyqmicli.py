@@ -101,7 +101,6 @@ def connect(iface, apns, iptypes, qmap=False):
         cid = WDS_GET_CLIENT_ID()["cid"]
 
         WDS_SET_IP_FAMILY(cid, iptype)
-        WDS_GET_PROFILE_LIST(cid)
 
         if qmap:
             data = WDS_BIND_MUX_DATA_PORT(cid, qmux_id)
