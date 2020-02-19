@@ -71,8 +71,8 @@ def configure(iface, apns, iptypes, qmap):
         tables = len(iptypes) * ["main"]
 
         data = parse(run("ip addr show %s" % iface), mtu=".*mtu (\d+) .*")
-        # disable ip-raw to set MTU, then set it again
         if data.get("mtu", "") != "16384":
+            # disable ip-raw to set MTU, then set it again
             run("ip link set {RMNET} down".format(RMNET=iface))
             if not SET_EXPECTED_DATA_FORMAT("802-3"):
                 raise Exception("could not set ip raw type")
@@ -82,8 +82,7 @@ def configure(iface, apns, iptypes, qmap):
         if not SET_EXPECTED_DATA_FORMAT("raw-ip"):
             raise Exception("could not set ip raw type")
 
-    connections = zip(rmnets, apns, iptypes, qmux_ids, tables)
-    return connections
+    return zip(rmnets, apns, iptypes, qmux_ids, tables)
 
 
 def connect(iface, apns, iptypes, qmap=False):
@@ -120,47 +119,6 @@ def connect(iface, apns, iptypes, qmap=False):
             return False
 
     return True
-
-
-def routing_gateway_exists():
-    """ Check if default gateway is already configured """
-    data = parse(
-        run("ip route", show=False), negative=True, default=".*default via (.*)"
-    )
-    return data is not None and len(data) > 0
-
-
-def routing_table_exists(table):
-    """ Check if the routing table exists """
-    data = parse(
-        run("cat /etc/iproute2/rt_tables", show=False),
-        match=".*{TABLE_NAME}.*".format(TABLE_NAME=table),
-    )
-    return data is not None
-
-
-def add_mux(qmux_id, iface):
-    """ Create qmi qmux interface with the given id """
-    return run(
-        "echo {ID} | tee /sys/class/net/{IFACE}/qmi/add_mux".format(
-            ID=qmux_id, IFACE=iface
-        ),
-        show=False,
-    )
-
-
-def bind_mux_port(qmux_id, cid):
-    """ Bind mux data port """
-    run(
-        qmi_cmd(
-            cid,
-            "--verbose",
-            "--wds-bind-mux-data-port=mux-id={QMUX_ID},ep-iface-number=2".format(
-                QMUX_ID=qmux_id
-            ),
-            "--client-no-release-cid",
-        )
-    )
 
 
 def routing(data):
@@ -229,6 +187,46 @@ def routing(data):
 
     return True
 
+
+def routing_gateway_exists():
+    """ Check if default gateway is already configured """
+    data = parse(
+        run("ip route", show=False), negative=True, default=".*default via (.*)"
+    )
+    return data is not None and len(data) > 0
+
+
+def routing_table_exists(table):
+    """ Check if the routing table exists """
+    data = parse(
+        run("cat /etc/iproute2/rt_tables", show=False),
+        match=".*{TABLE_NAME}.*".format(TABLE_NAME=table),
+    )
+    return data is not None
+
+
+def add_mux(qmux_id, iface):
+    """ Create qmi qmux interface with the given id """
+    return run(
+        "echo {ID} | tee /sys/class/net/{IFACE}/qmi/add_mux".format(
+            ID=qmux_id, IFACE=iface
+        ),
+        show=False,
+    )
+
+
+def bind_mux_port(qmux_id, cid):
+    """ Bind mux data port """
+    run(
+        qmi_cmd(
+            cid,
+            "--verbose",
+            "--wds-bind-mux-data-port=mux-id={QMUX_ID},ep-iface-number=2".format(
+                QMUX_ID=qmux_id
+            ),
+            "--client-no-release-cid",
+        )
+    )
 
 
 GET_IFACE = lambda name: parse(
