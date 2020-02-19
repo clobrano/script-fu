@@ -188,14 +188,6 @@ def routing(data):
     return True
 
 
-def routing_gateway_exists():
-    """ Check if default gateway is already configured """
-    data = parse(
-        run("ip route", show=False), negative=True, default=".*default via (.*)"
-    )
-    return data is not None and len(data) > 0
-
-
 def routing_table_exists(table):
     """ Check if the routing table exists """
     data = parse(
