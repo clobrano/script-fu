@@ -298,18 +298,6 @@ WDS_GET_PROFILE_LIST = lambda cid: parse(
     cid=r".*CID: '(\d+)'",
 )
 
-WDS_CREATE_PROFILE = lambda cid, apn: parse(
-    run(
-        qmi_cmd(
-            cid,
-            "--wds-create-profile=3gpp,apn={APN},pdp-type=IPV4".format(
-                APN=apn),
-            "--client-no-release-cid",
-        )
-    ),
-    cid=r".*CID: '(\d+)'",
-)
-
 WDS_SET_IP_FAMILY = lambda cid, iptype: parse(
     run(
         qmi_cmd(cid, "--wds-set-ip-family={}".format(iptype), "--client-no-release-cid")
