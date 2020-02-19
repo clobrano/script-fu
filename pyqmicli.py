@@ -70,11 +70,14 @@ def configure(iface, apns, iptypes, qmap):
         qmux_ids = len(iptypes) * [0]
         tables = len(iptypes) * ["main"]
 
+        data = parse(run("ip addr show %s" % iface), mtu=".*mtu (\d+) .*")
         # disable ip-raw to set MTU, then set it again
-        run("ip link set {RMNET} down".format(RMNET=iface))
-        if not SET_EXPECTED_DATA_FORMAT("802-3"):
-            raise Exception("could not set ip raw type")
-        run("ip link set {RMNET} mtu 16384".format(RMNET=iface))
+        if data.get("mtu", "") != "16384":
+            run("ip link set {RMNET} down".format(RMNET=iface))
+            if not SET_EXPECTED_DATA_FORMAT("802-3"):
+                raise Exception("could not set ip raw type")
+
+            run("ip link set {RMNET} mtu 16384".format(RMNET=iface))
 
         if not SET_EXPECTED_DATA_FORMAT("raw-ip"):
             raise Exception("could not set ip raw type")
