@@ -165,50 +165,70 @@ def bind_mux_port(qmux_id, cid):
 
 def routing(data):
     """ Configure routing table """
-
-    address = data.get("addr", None)
-    iface = data.get("iface", None)
-    netmask = data.get("subnet", None)
-    gateway = data.get("gw_addr", None)
-    table = data.get("table", None)
-    iptype = data.get("iptype", None)
+    ip_cmd = {"4": "ip", "6": "ip -6"}
     dest_addr = {"4": "8.8.8.8", "6": "2001:4860:4860::8888"}
 
-    run("ip link set {RMNET} up".format(RMNET=iface))
-    if iptype == "4":
-        run(
-            "ip addr add {IP}/{MASK} dev {RMNET}".format(
-                IP=address, MASK=get_cdr(netmask), RMNET=iface
-            )
+    address = data.get("addr", None)
+    gateway = data.get("gw_addr", None)
+    iface = data.get("iface", None)
+    iptype = data.get("iptype", None)
+    netmask = data.get("subnet", None)
+    table = data.get("table", None)
+
+    if gateway and gateway.find("/"):
+        gateway = gateway[: gateway.find("/")]
+
+    addr = {"4": "%s/%s" % (address, get_cdr(netmask)), "6": address}
+
+    run("{IP} link set {RMNET} up".format(IP=ip_cmd[iptype], RMNET=iface))
+    run(
+        "{IP} addr add {ADDR} dev {RMNET}".format(
+            IP=ip_cmd[iptype], ADDR=addr[iptype], RMNET=iface
         )
-    else:
-        run("ip -6 addr add {IP} dev {RMNET}".format(IP=address, RMNET=iface))
+    )
 
     if table == "main":
         run(
-            "ip route add {DEST} via {GW} dev {RMNET} proto static".format(
-                DEST=dest_addr[iptype], GW=gateway, RMNET=iface
+            "{IP} route add {DEST} via {GW} dev {RMNET} proto static".format(
+                IP=ip_cmd[iptype], DEST=dest_addr[iptype], GW=gateway, RMNET=iface
             )
         )
     else:
         data = parse(
-            run("ip route", show=False), net="(.*) dev {RMNET} .*".format(RMNET=iface)
+            run("{IP} route".format(IP=ip_cmd[iptype]), show=False),
+            net="(.*) dev {RMNET} .*".format(IP=ip_cmd[iptype], RMNET=iface),
         )
         run(
-            "ip route add {NET} dev {RMNET} src {ADDR} table {TABLE}".format(
-                NET=data["net"], RMNET=iface, ADDR=address, TABLE=table
+            "{IP} route add {NET} dev {RMNET} src {ADDR} table {TABLE}".format(
+                IP=ip_cmd[iptype],
+                NET=data["net"],
+                RMNET=iface,
+                ADDR=address,
+                TABLE=table,
             )
         )
-        if gateway:
-            run(
-                "ip route add default via {GW} dev {RMNET} table {TABLE} proto static".format(
-                    GW=gateway, RMNET=iface, TABLE=table
-                )
+        run(
+            "{IP} route add {DEST} via {GW} dev {RMNET} table {TABLE} proto static".format(
+                IP=ip_cmd[iptype],
+                DEST=dest_addr[iptype],
+                GW=gateway,
+                RMNET=iface,
+                TABLE=table,
             )
-        run("ip rule add from {NET} table {TABLE}".format(NET=data["net"], TABLE=table))
-        run("ip rule add to {NET} table {TABLE}".format(NET=data["net"], TABLE=table))
+        )
+        run(
+            "{IP} rule add from {NET} table {TABLE}".format(
+                IP=ip_cmd[iptype], NET=data["net"], TABLE=table
+            )
+        )
+        run(
+            "{IP} rule add to {NET} table {TABLE}".format(
+                IP=ip_cmd[iptype], NET=data["net"], TABLE=table
+            )
+        )
 
     return True
+
 
 
 GET_IFACE = lambda name: parse(
