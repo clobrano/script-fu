@@ -173,6 +173,7 @@ def routing(data):
     gateway = data.get("gw_addr", None)
     table = data.get("table", None)
     iptype = data.get("iptype", None)
+    dest_addr = {"4": "8.8.8.8", "6": "2001:4860:4860::8888"}
 
     run("ip link set {RMNET} up".format(RMNET=iface))
     if iptype == "4":
@@ -186,8 +187,8 @@ def routing(data):
 
     if table == "main":
         run(
-            "ip route add 8.8.8.8 via {GW} dev {RMNET} proto static".format(
-                GW=gateway, RMNET=iface
+            "ip route add {DEST} via {GW} dev {RMNET} proto static".format(
+                DEST=dest_addr[iptype], GW=gateway, RMNET=iface
             )
         )
     else:
