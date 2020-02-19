@@ -409,6 +409,9 @@ def parse(output, negative=False, **kwargs):
 
 def get_cdr(subnetmask):
     """ Return subnet mask prefix """
+    if not subnetmask:
+        return None
+
     addr = u"0.0.0.0/{}".format(subnetmask)
     prefix = ipaddress.IPv4Network(addr, strict=False).prefixlen
     return prefix
