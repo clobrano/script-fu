@@ -89,10 +89,7 @@ def configure(iface, apns, iptypes, qmap):
 def connect(iface, apns, iptypes, qmap=False):
     """Simple QMI connection"""
 
-    # if "4" in iptypes and routing_gateway_exists():
-    # ERR("Found a Gateway alredy defined. Please disable any connection first")
-    # return False
-
+    DMS_GET_MODEL()
     WDA_GET_DATA_FORMAT()
     if not NAS_GET_HOME_NETWORK():
         raise Exception("could not get Home network")
@@ -224,7 +221,7 @@ GET_IFACE = lambda name: parse(
 SET_EXPECTED_DATA_FORMAT = lambda format: parse(
     run(qmi_cmd(None, "--set-expected-data-format={}".format(format)))
 )
-
+DMS_GET_MODEL = lambda: parse(run(qmi_cmd(None, "--dms-get-model")))
 WDA_GET_DATA_FORMAT = lambda: parse(run(qmi_cmd(None, "--wda-get-data-format")))
 WDA_SET_DATA_FORMAT = lambda: parse(
     run(
