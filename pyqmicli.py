@@ -270,8 +270,8 @@ WDS_GET_CURRENT_SETTINGS_IPV4 = lambda cid: parse(
     addr=r".*IPv4 address: (.*)",
     subnet=r".*IPv4 subnet mask: (.*)",
     gw_addr=r".*IPv4 gateway address: (.*)",
-    dns1=r".*IPv4 primary DNS: (.*)",
-    dns2=r".*IPv4 secondary DNS: (.*)",
+    # dns1=r".*IPv4 primary DNS: (.*)",
+    # dns2=r".*IPv4 secondary DNS: (.*)",
     mtu=r".*MTU: (.*)",
 )
 
@@ -280,8 +280,8 @@ WDS_GET_CURRENT_SETTINGS_IPV6 = lambda cid: parse(
     cid=r".*CID: '(\d+)'",
     addr=r".*IPv6 address: (.*)",
     gw_addr=r".*IPv6 gateway address: (.*)",
-    dns1=r".*IPv6 primary DNS: (.*)",
-    dns2=r".*IPv6 secondary DNS: (.*)",
+    # dns1=r".*IPv6 primary DNS: (.*)",
+    # dns2=r".*IPv6 secondary DNS: (.*)",
     mtu=r".*MTU: (.*)",
 )
 WDS_GET_CURRENT_SETTINGS = {
