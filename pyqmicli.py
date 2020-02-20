@@ -31,7 +31,7 @@ def main():
     opts = options()
     global DEVICE
     DEVICE = opts.path
-    if not connect(opts.iface, opts.apn, opts.type, opts.qmap):
+    if not connect(opts.iface, opts.apn, opts.type, opts.qmap, opts.cmw):
         ERR("connect failed")
 
 
@@ -85,7 +85,7 @@ def configure(iface, apns, iptypes, qmap):
     return zip(rmnets, apns, iptypes, qmux_ids, tables)
 
 
-def connect(iface, apns, iptypes, qmap=False):
+def connect(iface, apns, iptypes, qmap=False, cmw=False):
     """Simple QMI connection"""
 
     DMS_GET_MODEL()
@@ -110,6 +110,7 @@ def connect(iface, apns, iptypes, qmap=False):
         data["iface"] = rmnet
         data["table"] = table
         data["iptype"] = iptype
+        data["cmw"] = cmw
 
         if qmap:
             run("ip link set {RMNET} up".format(RMNET=iface))
@@ -124,7 +125,11 @@ def connect(iface, apns, iptypes, qmap=False):
 def routing(data):
     """ Configure routing table """
     ip_cmd = {"4": "ip", "6": "ip -6"}
-    dest_addr = {"4": "8.8.8.8", "6": "2001:4860:4860::8888"}
+
+    if data["cmw"]:
+        dest_addr = {"4": "127.22.1.201", "6": "fc01:cafe::1"}
+    else:
+        dest_addr = {"4": "8.8.8.8", "6": "2001:4860:4860::8888"}
 
     address = data.get("addr", None)
     gateway = data.get("gw_addr", None)
@@ -425,6 +430,7 @@ def options():
     parser.add_argument("-a", "--apn", required=True, nargs="+", help="the SIM APN")
     parser.add_argument("-d", "--debug", action="store_true", help="show debug logs")
     parser.add_argument("--qmap", action="store_true", help="configure qmap")
+    parser.add_argument("--cmw", action="store_true", help="simulate with CMW")
 
     opts = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
     if opts.debug:
