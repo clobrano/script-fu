@@ -38,7 +38,6 @@ def main():
 def configure(iface, apns, iptypes, qmap):
     """configure interface and return proper settings for start_network """
 
-    connections = dict()
     if qmap:
         if not len(apns) == 2:
             raise Exception("You need two APNs for QMAP connection")
@@ -140,7 +139,8 @@ def routing(data):
     iptype = data.get("iptype", None)
     table = data.get("table", None)
 
-    if gateway and gateway.find("/"):
+    if gateway and gateway.find("/") != -1:
+        DBG("remove prefix from %s -> %s", gateway, gateway[: gateway.find("/")])
         gateway = gateway[: gateway.find("/")]
 
 
