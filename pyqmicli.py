@@ -15,7 +15,7 @@ USAGE = """
 """
 
 logging.basicConfig(
-    level=logging.INFO, format="[%(levelname)s %(funcName)s:%(lineno)s] %(message)s"
+    level=logging.INFO, format="[%(levelname)s %(funcName)s] %(message)s"
 )
 LOGGER = logging.getLogger(__name__)
 INFO = LOGGER.info
