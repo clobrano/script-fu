@@ -132,16 +132,17 @@ def routing(data):
         dest_addr = {"4": "8.8.8.8", "6": "2001:4860:4860::8888"}
 
     address = data.get("addr", None)
+    netmask = data.get("subnet", None)
+    addr = {"4": "%s/%s" % (address, get_cdr(netmask)), "6": address[:address.find("/")]}
+
     gateway = data.get("gw_addr", None)
     iface = data.get("iface", None)
     iptype = data.get("iptype", None)
-    netmask = data.get("subnet", None)
     table = data.get("table", None)
 
     if gateway and gateway.find("/"):
         gateway = gateway[: gateway.find("/")]
 
-    addr = {"4": "%s/%s" % (address, get_cdr(netmask)), "6": address}
 
     run("{IP} link set {RMNET} up".format(IP=ip_cmd[iptype], RMNET=iface))
     run(
@@ -166,7 +167,7 @@ def routing(data):
                 IP=ip_cmd[iptype],
                 NET=data["net"],
                 RMNET=iface,
-                ADDR=address,
+                ADDR=addr[iptype],
                 TABLE=table,
             )
         )
