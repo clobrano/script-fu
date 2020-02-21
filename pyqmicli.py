@@ -12,6 +12,13 @@ from copy import deepcopy
 
 USAGE = """
     pyqmi --path </path/to/cdc-wdm> [other options]
+
+e.g.
+    pyqmi --path /dev/cdc-wdm0 --apn testapn --type 4                   # IPv4 single connection
+    pyqmi --path /dev/cdc-wdm0 --apn testapnA testapnB --type 4 --qmap  # IPv4 with QMAP
+    pyqmi --path /dev/cdc-wdm0 --apn testapn --type 6                   # IPv6 single connection
+    pyqmi --path /dev/cdc-wdm0 --apn testapnA testapnB --type 6 --qmap  # IPv6 with QMAP
+    pyqmi --path /dev/cdc-wdm0 --apn testapn4 testapn6 --type 4 6       # dual PDN, IPv4 and IPv6
 """
 
 logging.basicConfig(
@@ -426,12 +433,12 @@ def options():
         "-i", "--iface", required=True, help="interface name (e.g. wwan0)"
     )
     parser.add_argument(
-        "-t", "--type", default=["4"], nargs="+", help="IP type, either 4 or 6"
+        "-t", "--type", default=["4"], nargs="*", help="IP type. Either 4 or 6, or both for double PDN"
     )
-    parser.add_argument("-a", "--apn", required=True, nargs="+", help="the SIM APN")
-    parser.add_argument("-d", "--debug", action="store_true", help="show debug logs")
-    parser.add_argument("--qmap", action="store_true", help="configure qmap")
-    parser.add_argument("--cmw", action="store_true", help="simulate with CMW")
+    parser.add_argument("-a", "--apn", required=True, nargs="+", help="the APN to be used. Provide two APN for double PDN")
+    parser.add_argument("--qmap", action="store_true", help="enable qmap")
+    parser.add_argument("--cmw", action="store_true", help="simulate with CMW (only for testing)")
+    parser.add_argument("-d", "--debug", action="store_true", help="enable verbose logging")
 
     opts = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
     if opts.debug:
