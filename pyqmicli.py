@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vi: set ft=python :
-import sys
-from os import path
-import re
-import subprocess
-import logging
-import argparse
-import ipaddress
-from copy import deepcopy
+"""
+    Telit QMI connection test script with libqmi
+    version 0.1
 
-USAGE = """
     pyqmi --path </path/to/cdc-wdm> [other options]
 
 e.g.
@@ -20,6 +14,15 @@ e.g.
     pyqmi --path /dev/cdc-wdm0 --apn testapnA testapnB --type 6 --qmap  # IPv6 with QMAP
     pyqmi --path /dev/cdc-wdm0 --apn testapn4 testapn6 --type 4 6       # dual PDN, IPv4 and IPv6
 """
+
+import sys
+from os import path
+import re
+import subprocess
+import logging
+import argparse
+import ipaddress
+from copy import deepcopy
 
 logging.basicConfig(
     level=logging.INFO, format="[%(levelname)s %(funcName)s] %(message)s"
@@ -424,7 +427,7 @@ def get_cdr(subnetmask):
 
 def options():
     """ Define CLI arguments """
-    parser = argparse.ArgumentParser(usage=USAGE)
+    parser = argparse.ArgumentParser(usage=__doc__)
     parser.add_argument(
         "-p",
         "--path",
