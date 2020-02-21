@@ -139,7 +139,10 @@ def routing(data):
 
     address = data.get("addr", None)
     netmask = data.get("subnet", None)
-    addr = {"4": "%s/%s" % (address, get_cdr(netmask)), "6": address[:address.find("/")]}
+    addr = {
+        "4": "%s/%s" % (address, get_cdr(netmask)),
+        "6": address[: address.find("/")],
+    }
 
     gateway = data.get("gw_addr", None)
     iface = data.get("iface", None)
@@ -149,7 +152,6 @@ def routing(data):
     if gateway and gateway.find("/") != -1:
         DBG("remove prefix from %s -> %s", gateway, gateway[: gateway.find("/")])
         gateway = gateway[: gateway.find("/")]
-
 
     run("{IP} link set {RMNET} up".format(IP=ip_cmd[iptype], RMNET=iface))
     run(
@@ -433,12 +435,26 @@ def options():
         "-i", "--iface", required=True, help="interface name (e.g. wwan0)"
     )
     parser.add_argument(
-        "-t", "--type", default=["4"], nargs="*", help="IP type. Either 4 or 6, or both for double PDN"
+        "-t",
+        "--type",
+        default=["4"],
+        nargs="*",
+        help="IP type. Either 4 or 6, or both for double PDN",
     )
-    parser.add_argument("-a", "--apn", required=True, nargs="+", help="the APN to be used. Provide two APN for double PDN")
+    parser.add_argument(
+        "-a",
+        "--apn",
+        required=True,
+        nargs="+",
+        help="the APN to be used. Provide two APN for double PDN",
+    )
     parser.add_argument("--qmap", action="store_true", help="enable qmap")
-    parser.add_argument("--cmw", action="store_true", help="simulate with CMW (only for testing)")
-    parser.add_argument("-d", "--debug", action="store_true", help="enable verbose logging")
+    parser.add_argument(
+        "--cmw", action="store_true", help="simulate with CMW (only for testing)"
+    )
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="enable verbose logging"
+    )
 
     opts = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
     if opts.debug:
