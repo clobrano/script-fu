@@ -5,14 +5,14 @@
     Telit QMI connection test script with libqmi
     version 0.1
 
-    pyqmi --path </path/to/cdc-wdm> [other options]
+    pyqmi --path </path/to/cdc-wdm> --iface wwan0 [other options]
 
 e.g.
-    pyqmi --path /dev/cdc-wdm0 --apn testapn --type 4                   # IPv4 single connection
-    pyqmi --path /dev/cdc-wdm0 --apn testapnA testapnB --type 4 --qmap  # IPv4 with QMAP
-    pyqmi --path /dev/cdc-wdm0 --apn testapn --type 6                   # IPv6 single connection
-    pyqmi --path /dev/cdc-wdm0 --apn testapnA testapnB --type 6 --qmap  # IPv6 with QMAP
-    pyqmi --path /dev/cdc-wdm0 --apn testapn4 testapn6 --type 4 6       # dual PDN, IPv4 and IPv6
+    pyqmi --path /dev/cdc-wdm0 --iface wwan0 --apn testapn --type 4                   # IPv4 single connection
+    pyqmi --path /dev/cdc-wdm0 --iface wwan0 --apn testapnA testapnB --type 4 --qmap  # IPv4 with QMAP
+    pyqmi --path /dev/cdc-wdm0 --iface wwan0 --apn testapn --type 6                   # IPv6 single connection
+    pyqmi --path /dev/cdc-wdm0 --iface wwan0 --apn testapnA testapnB --type 6 --qmap  # IPv6 with QMAP
+    pyqmi --path /dev/cdc-wdm0 --iface wwan0 --apn testapn4 testapn6 --type 4 6       # dual PDN, IPv4 and IPv6
 """
 
 import sys
