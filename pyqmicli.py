@@ -102,10 +102,10 @@ def connect(iface, apns, iptypes, qmap=False, cmw=False):
     if not NAS_GET_HOME_NETWORK():
         raise Exception("could not get Home network")
 
-    connections = configure(iface, apns, iptypes, qmap)
+    configurations = configure(iface, apns, iptypes, qmap)
 
-    for rmnet, apn, iptype, qmux_id, table in connections:
-
+    connections = list()
+    for rmnet, apn, iptype, qmux_id, table in configurations:
         cid = WDS_GET_CLIENT_ID()["cid"]
 
         WDS_SET_IP_FAMILY(cid, iptype)
@@ -113,9 +113,11 @@ def connect(iface, apns, iptypes, qmap=False, cmw=False):
         if qmap:
             data = WDS_BIND_MUX_DATA_PORT(cid, qmux_id)
 
-        WDS_START_NETWORK(cid, apn, iptype)
+        handle = WDS_START_NETWORK(cid, apn, iptype)["handle"]
 
         data = WDS_GET_CURRENT_SETTINGS[iptype](cid)
+        data["handle"] = handle
+        data["apn"] = apn
         data["iface"] = rmnet
         data["table"] = table
         data["iptype"] = iptype
@@ -127,6 +129,13 @@ def connect(iface, apns, iptypes, qmap=False, cmw=False):
         if not routing(data):
             ERR("routing error")
             return False
+
+        connections.append(data)
+
+    INFO("connection completed")
+    for conn in connections:
+        INFO("to close the ipv%s connection on %s with APN %s, run the following command", conn["iptype"], conn["iface"], conn["apn"])
+        INFO("   qmicli -p -d %s --wds-stop-network=%s", DEVICE, conn["handle"])
 
     return True
 
@@ -144,7 +153,7 @@ def routing(data):
     netmask = data.get("subnet", None)
     addr = {
         "4": "%s/%s" % (address, get_cdr(netmask)),
-        "6": address,
+        "6": address, # IPv6 address has already the prefix
     }
 
     gateway = data.get("gw_addr", None)
@@ -172,7 +181,7 @@ def routing(data):
     else:
         data = parse(
             run("{IP} route".format(IP=ip_cmd[iptype]), show=False),
-            net="(.*) dev {RMNET} .*".format(IP=ip_cmd[iptype], RMNET=iface),
+            net="(.*) dev {RMNET} .*".format(RMNET=iface),
         )
         run(
             "{IP} route add {NET} dev {RMNET} src {ADDR} table {TABLE}".format(
