@@ -136,7 +136,7 @@ def routing(data):
     ip_cmd = {"4": "ip", "6": "ip -6"}
 
     if data["cmw"]:
-        dest_addr = {"4": "127.22.1.201", "6": "fc01:cafe::1"}
+        dest_addr = {"4": "172.22.1.201", "6": "fc01:cafe::1"}
     else:
         dest_addr = {"4": "8.8.8.8", "6": "2001:4860:4860::8888"}
 
@@ -144,7 +144,7 @@ def routing(data):
     netmask = data.get("subnet", None)
     addr = {
         "4": "%s/%s" % (address, get_cdr(netmask)),
-        "6": address[: address.find("/")],
+        "6": address,
     }
 
     gateway = data.get("gw_addr", None)
