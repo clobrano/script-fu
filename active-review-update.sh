@@ -58,12 +58,13 @@ for f in $(ls -tr $_path); do
     if [ $f == $_output ]; then
         continue
     fi
-    time=$(stat -c %y $f | cut -d' ' -f1)
-    no_matches=$(grep -e "^#" $f | wc -l)
+    time=$(stat -c %y $_path/$f | cut -d' ' -f1)
+    echo $time
+    no_matches=$(grep -e "^#" $_path/$f | wc -l)
 
     if [ $no_matches -gt 0 ]; then
         printf "\n# %s %s\n" $time $f;
-        matches=$(grep -e "^#" $f)
+        matches=$(grep -e "^#" $_path/$f)
         while IFS= read
         do
             echo "- ${REPLY//\#/}"
