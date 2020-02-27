@@ -10,11 +10,12 @@
 ##
 ## usage: active-review-update.sh [--path path/to/dir] [--output /path/to/file]
 ## options:
-##      -p, --path <path> Path to note directory [default: .]
-##      -o, --output <path> Path to the file where save the result [default: review.md]
-# GENERATED_CODE: start
+##      -p, --path <path> Path to note directory [default: ./notes]
+##      -o, --output <path> Path to the file where save the result [default: active-review-state.md]
+# CLInt GENERATED_CODE: start
 # Default values
-_path=.
+_path=./notes
+_output=active-review-state.md
 
 # Converting long-options into short ones
 for arg in "$@"; do
@@ -44,7 +45,7 @@ while getopts 'hp:o:' OPT; do
             ;;
     esac
 done
-# GENERATED_CODE: end
+# CLInt GENERATED_CODE: end
 
 # Open STDOUT as $LOG_FILE file for read and write.
 cmd=
@@ -59,7 +60,6 @@ for f in $(ls -tr $_path); do
         continue
     fi
     time=$(stat -c %y $_path/$f | cut -d' ' -f1)
-    echo $time
     no_matches=$(grep -e "^#" $_path/$f | wc -l)
 
     if [ $no_matches -gt 0 ]; then
