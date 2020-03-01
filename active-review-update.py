@@ -5,20 +5,32 @@ import sys
 import argparse
 import os
 import datetime
+from operator import itemgetter
 
 
 def active_review(directory, report):
     """ parse a directory of notes and writes a active review report"""
-    print(directory, report)
     notes = [
-        entry
+        {
+            "name": entry,
+            "date": str(
+                datetime.datetime.fromtimestamp(
+                    os.path.getmtime(os.path.join(directory, entry))
+                )
+            ).split(".")[0],
+        }
         for entry in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, entry))
     ]
+
     reports = []
-    for note in notes:
-        reports.append("# %s %s" % (datetime.date.today(), note.split(".")[0]))
-        fh = open(os.path.join(directory, note))
+    for entry in sorted(notes, key=itemgetter("date")):
+        note = entry["name"]
+        date = entry["date"]
+
+        path = os.path.join(directory, note)
+        reports.append("# [%s] %s" % (date, note.split(".")[0]))
+        fh = open(path)
         reports.extend(
             [
                 line.strip().replace("##", "\t-").replace("#", "-")
