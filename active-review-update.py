@@ -33,7 +33,7 @@ def active_review(directory, report):
         fh = open(path)
         reports.extend(
             [
-                line.strip().replace("##", "\t-").replace("#", "-")
+                line.strip().replace("###", "\t\t-").replace("##", "\t-").replace("#", "-")
                 for line in fh
                 if line.startswith("#")
             ]
