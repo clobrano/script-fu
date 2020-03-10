@@ -41,7 +41,7 @@ def main():
     opts = options()
     global DEVICE
     DEVICE = opts.path
-    if not connect(opts.iface, opts.apn, opts.type, opts.qmap, opts.cmw):
+    if not connect(opts):
         ERR("connect failed")
 
 
@@ -94,7 +94,7 @@ def configure(iface, apns, iptypes, qmap):
     return zip(rmnets, apns, iptypes, qmux_ids, tables)
 
 
-def connect(iface, apns, iptypes, qmap=False, cmw=False):
+def connect(opts):
     """Simple QMI connection"""
 
     DMS_GET_MODEL()
@@ -102,7 +102,7 @@ def connect(iface, apns, iptypes, qmap=False, cmw=False):
     if not NAS_GET_HOME_NETWORK():
         raise Exception("could not get Home network")
 
-    configurations = configure(iface, apns, iptypes, qmap)
+    configurations = configure(opts.iface, opts.apns, opts.iptypes, opts.qmap)
 
     connections = list()
     for rmnet, apn, iptype, qmux_id, table in configurations:
@@ -110,7 +110,7 @@ def connect(iface, apns, iptypes, qmap=False, cmw=False):
 
         WDS_SET_IP_FAMILY(cid, iptype)
 
-        if qmap:
+        if opts.qmap:
             data = WDS_BIND_MUX_DATA_PORT(cid, qmux_id)
 
         handle = WDS_START_NETWORK(cid, apn, iptype)["handle"]
@@ -121,10 +121,10 @@ def connect(iface, apns, iptypes, qmap=False, cmw=False):
         data["iface"] = rmnet
         data["table"] = table
         data["iptype"] = iptype
-        data["cmw"] = cmw
+        data["cmw"] = opts.cmw
 
-        if qmap:
-            run("ip link set {RMNET} up".format(RMNET=iface))
+        if opts.qmap:
+            run("ip link set {RMNET} up".format(RMNET=opts.iface))
 
         if not routing(data):
             ERR("routing error")
@@ -460,9 +460,9 @@ def options():
         nargs="+",
         help="the APN to be used. Provide two APN for double PDN",
     )
-    parser.add_argument("--qmap", action="store_true", help="enable qmap")
+    parser.add_argument("--qmap", default=False, action="store_true", help="enable qmap")
     parser.add_argument(
-        "--cmw", action="store_true", help="simulate with CMW (only for testing)"
+        "--cmw", default=False, action="store_true", help="simulate with CMW (only for testing)"
     )
     parser.add_argument(
         "-d", "--debug", action="store_true", help="enable verbose logging"
