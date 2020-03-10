@@ -79,7 +79,7 @@ def configure(iface, apns, iptypes, qmap):
         qmux_ids = len(iptypes) * [0]
         tables = len(iptypes) * ["main"]
 
-        data = parse(run("ip addr show %s" % iface), mtu=".*mtu (\d+) .*")
+        data = parse(run("ip addr show %s" % iface), mtu=r".*mtu (\d+) .*")
         if data.get("mtu", "") != "16384":
             # disable ip-raw to set MTU, then set it again
             run("ip link set {RMNET} down".format(RMNET=iface))
@@ -134,7 +134,12 @@ def connect(opts):
 
     INFO("connection completed")
     for conn in connections:
-        INFO("to close the ipv%s connection on %s with APN %s, run the following command", conn["iptype"], conn["iface"], conn["apn"])
+        INFO(
+            "to close the ipv%s connection on %s with APN %s, run the following command",
+            conn["iptype"],
+            conn["iface"],
+            conn["apn"],
+        )
         INFO("   qmicli -p -d %s --wds-stop-network=%s", DEVICE, conn["handle"])
 
     return True
@@ -153,7 +158,7 @@ def routing(data):
     netmask = data.get("subnet", None)
     addr = {
         "4": "%s/%s" % (address, get_cdr(netmask)),
-        "6": address, # IPv6 address has already the prefix
+        "6": address,  # IPv6 address has already the prefix
     }
 
     gateway = data.get("gw_addr", None)
@@ -461,9 +466,14 @@ def options():
         nargs="+",
         help="the APN to be used. Provide two APN for double PDN",
     )
-    parser.add_argument("--qmap", default=False, action="store_true", help="enable qmap")
     parser.add_argument(
-        "--cmw", default=False, action="store_true", help="simulate with CMW (only for testing)"
+        "--qmap", default=False, action="store_true", help="enable qmap"
+    )
+    parser.add_argument(
+        "--cmw",
+        default=False,
+        action="store_true",
+        help="simulate with CMW (only for testing)",
     )
     parser.add_argument(
         "-d", "--debug", action="store_true", help="enable verbose logging"
