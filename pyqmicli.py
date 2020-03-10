@@ -251,7 +251,7 @@ def bind_mux_port(qmux_id, cid):
 GET_IFACE = lambda name: parse(
     run("ip addr show", show=False),
     iface=r"\d+: {NAME}: .*".format(NAME=name),
-    negative=True,
+    fail_if_missing=False,
 )
 
 SET_EXPECTED_DATA_FORMAT = lambda format: parse(
@@ -291,9 +291,10 @@ WDS_GET_CURRENT_SETTINGS_IPV4 = lambda cid: parse(
     addr=r".*IPv4 address: (.*)",
     subnet=r".*IPv4 subnet mask: (.*)",
     gw_addr=r".*IPv4 gateway address: (.*)",
-    # dns1=r".*IPv4 primary DNS: (.*)",
-    # dns2=r".*IPv4 secondary DNS: (.*)",
+    dns1=r".*IPv4 primary DNS: (.*)",
+    dns2=r".*IPv4 secondary DNS: (.*)",
     mtu=r".*MTU: (.*)",
+    fail_if_missing=False,
 )
 
 WDS_GET_CURRENT_SETTINGS_IPV6 = lambda cid: parse(
@@ -379,7 +380,7 @@ def run(cmd, cwd=None, show=True):
     return out
 
 
-def parse(output, negative=False, **kwargs):
+def parse(output, fail_if_missing=True, **kwargs):
     """ Parse a multiline output string using the regex patterns in kwargs """
 
     if not output:
@@ -416,7 +417,7 @@ def parse(output, negative=False, **kwargs):
             del copy[key]
             break
 
-    if not negative and len(copy) != 0:
+    if fail_if_missing and len(copy) != 0:
         msg = "the following data has not been found: {}".format(copy)
         ERR(msg)
         sys.exit(1)
