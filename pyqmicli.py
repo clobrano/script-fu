@@ -130,6 +130,9 @@ def connect(opts):
             ERR("routing error")
             return False
 
+        if not set_dns(rmnet, data.get("dns1", None), data.get("dns2", None)):
+            ERR("could not set DNS")
+
         connections.append(data)
 
     INFO("connection completed")
@@ -218,6 +221,24 @@ def routing(data):
         )
 
     return True
+
+
+def set_dns(interface, server1, server2=None):
+    """ set per-interface DNS address(es) """
+    if not interface:
+        ERR("no interface set")
+        return None
+
+    if not server1:
+        ERR("setting dns requires at least one DNS address, found none")
+        return None
+
+    if not server2:
+        cmd = "systemd-resolve --interface=%s --set-nds=%s" % (interface, server1)
+    else:
+        cmd = "systemd-resolve --interface=%s --set-nds=%s --set-nds=%s" % (interface, server1, server2)
+
+    return run(cmd)
 
 
 def routing_table_exists(table):
