@@ -102,7 +102,7 @@ def connect(opts):
     if not NAS_GET_HOME_NETWORK():
         raise Exception("could not get Home network")
 
-    configurations = configure(opts.iface, opts.apns, opts.iptypes, opts.qmap)
+    configurations = configure(opts.iface, opts.apn, opts.iptypes, opts.qmap)
 
     connections = list()
     for rmnet, apn, iptype, qmux_id, table in configurations:
@@ -234,9 +234,9 @@ def set_dns(interface, server1, server2=None):
         return None
 
     if not server2:
-        cmd = "systemd-resolve --interface=%s --set-nds=%s" % (interface, server1)
+        cmd = "systemd-resolve --interface=%s --set-dns=%s" % (interface, server1)
     else:
-        cmd = "systemd-resolve --interface=%s --set-nds=%s --set-nds=%s" % (interface, server1, server2)
+        cmd = "systemd-resolve --interface=%s --set-dns=%s --set-dns=%s" % (interface, server1, server2)
 
     return run(cmd)
 
