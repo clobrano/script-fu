@@ -227,18 +227,20 @@ def set_dns(interface, server1, server2=None):
     """ set per-interface DNS address(es) """
     if not interface:
         ERR("no interface set")
-        return None
+        return False
 
     if not server1:
         ERR("setting dns requires at least one DNS address, found none")
-        return None
+        return False
 
     if not server2:
         cmd = "systemd-resolve --interface=%s --set-dns=%s" % (interface, server1)
     else:
         cmd = "systemd-resolve --interface=%s --set-dns=%s --set-dns=%s" % (interface, server1, server2)
 
-    return run(cmd)
+    run(cmd)
+
+    return True
 
 
 def routing_table_exists(table):
