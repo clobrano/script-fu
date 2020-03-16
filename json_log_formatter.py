@@ -51,6 +51,7 @@ if __name__ == "__main__":
     for f in OPTS.filter:
         if f not in FILTERS:
             print("ERR: unrecognized filter name '{}'. Valid values {}".format(f, FILTERS))
+            sys.exit(1)
 
     for p in execute(sys.argv[1].split()):
         json_object = json.loads(sanitize(p))
