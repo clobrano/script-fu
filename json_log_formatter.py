@@ -30,6 +30,11 @@ def execute(cmd):
         raise subprocess.CalledProcessError(return_code, cmd)
 
 
+def sanitize(string):
+    """ sanitize a string before JSON-ize it """
+    return string.strip().replace("//", "")    # slash replace is only needed on Windows
+
+
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(usage=__doc__)
     PARSER.add_argument("command", help="the command to execute (enclosed in quotes)")
@@ -48,7 +53,7 @@ if __name__ == "__main__":
             print("ERR: unrecognized filter name '{}'. Valid values {}".format(f, FILTERS))
 
     for p in execute(sys.argv[1].split()):
-        json_object = json.loads(p.strip())
+        json_object = json.loads(sanitize(p))
 
         if not OPTS.filter or json_object["type"] in OPTS.filter:
             formatted_json = json.dumps(json_object, indent=2)
