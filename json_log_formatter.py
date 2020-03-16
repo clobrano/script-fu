@@ -34,7 +34,7 @@ if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(usage=__doc__)
     PARSER.add_argument("command", help="the command to execute (enclosed in quotes)")
     PARSER.add_argument(
-        "-f", "--filter", nargs="*", help="filter by json type (LOG, PROGRESS, REPORT)"
+        "-f", "--filter", default=[], nargs="*", help="filter by json type (LOG, PROGRESS, REPORT)"
     )
     OPTS = PARSER.parse_args()
 
