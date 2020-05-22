@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # vi: set ft=python :
-import sys
+"""This module parses markdown files, reporting the
+titlename, last modification date and the titles as item list"""
+
 import argparse
 import os
 import datetime
@@ -28,21 +30,23 @@ def active_review(directory, report):
         note = entry["name"]
         date = entry["date"]
 
+        if note == "active-review-state.md" or note == "roadmap.md":
+            continue
         path = os.path.join(directory, note)
         reports.append("# [%s] %s" % (date, note.split(".")[0]))
-        fh = open(path)
+        file_handle = open(path)
         reports.extend(
             [
                 line.strip().replace("###", "\t\t-").replace("##", "\t-").replace("#", "-")
-                for line in fh
+                for line in file_handle
                 if line.startswith("#")
             ]
         )
         reports.append("\n")
 
-    rh = open(report, "w")
-    for r in reports:
-        rh.write("%s\n" % r)
+    file_handle = open(report, "w")
+    for row in reports:
+        file_handle.write("%s\n" % row)
 
 
 if __name__ == "__main__":
