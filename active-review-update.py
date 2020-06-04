@@ -30,18 +30,24 @@ def active_review(directory, report):
         note = entry["name"]
         date = entry["date"]
 
+        if not note.endswith(".md"):
+            continue
         if note == "active-review-state.md" or note == "roadmap.md":
             continue
         path = os.path.join(directory, note)
         reports.append("# [%s] %s" % (date, note.split(".")[0]))
         file_handle = open(path)
-        reports.extend(
-            [
-                line.strip().replace("###", "\t\t-").replace("##", "\t-").replace("#", "-")
-                for line in file_handle
-                if line.startswith("#")
-            ]
-        )
+        try:
+            reports.extend(
+                [
+                    line.strip().replace("###", "\t\t-").replace("##", "\t-").replace("#", "-")
+                    for line in file_handle
+                    if line.startswith("#")
+                ]
+            )
+        except UnicodeDecodeError as err:
+            print("error parsing file {}".format(note))
+            raise err
         reports.append("\n")
 
     file_handle = open(report, "w")
