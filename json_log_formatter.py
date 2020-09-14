@@ -32,7 +32,7 @@ def execute(cmd):
 
 def sanitize(string):
     """ sanitize a string before JSON-ize it """
-    return string.strip().replace("//", "")    # slash replace is only needed on Windows
+    return string.strip().replace("\\", "")    # slash replace is only needed on Windows
 
 
 if __name__ == "__main__":
