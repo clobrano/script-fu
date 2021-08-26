@@ -9,8 +9,8 @@
 ##    -d, --disk <path>      The path to the disk image
 ##    -s, --size <string>    The size of the disk image [default:16G]
 ##    -m, --mem <string>     The OS size [default:4G]
-##    -b, --bus <number>     The USB device bus for USB passthrough
-##    -a, --addr <number>    The USB device ID for USB passthrough
+##    -v, --vid <number>     The USB vendor ID for USB passthrough
+##    -p, --pid <number>     The USB product IDfor USB passthrough
 
 # CLInt GENERATED_CODE: start
 # Default values
@@ -30,8 +30,8 @@ for arg in "$@"; do
 "--disk") set -- "$@" "-d";;
 "--size") set -- "$@" "-s";;
 "--mem") set -- "$@" "-m";;
-"--bus") set -- "$@" "-b";;
-"--addr") set -- "$@" "-a";;
+"--vid") set -- "$@" "-v";;
+"--pid") set -- "$@" "-p";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -41,7 +41,7 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hcri:d:s:m:b:a:' OPT; do
+while getopts 'hcri:d:s:m:v:p:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
@@ -51,8 +51,8 @@ while getopts 'hcri:d:s:m:b:a:' OPT; do
         d) _disk=$OPTARG ;;
         s) _size=$OPTARG ;;
         m) _mem=$OPTARG ;;
-        b) _bus=$OPTARG ;;
-        a) _addr=$OPTARG ;;
+        v) _vid=$OPTARG ;;
+        p) _pid=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -67,9 +67,8 @@ DISK_SZ=$_size
 OS_FILE=$_install
 OS_MEM=$_mem
 
-# Get the following via lsusb (BUS and Device id)
-USB_PASSTHROUGH_HOSTBUS=$_bus
-USB_PASSTHROUGH_HOSTADDR=$_addr
+USB_PASSTHROUGH_VID=$_vid
+USB_PASSTHROUGH_PID=$_pid
 
 create_qcow2_image() {
     local path=$1
@@ -117,8 +116,8 @@ run_os() {
     local usb_passthrough=""
     set -u
     [[ ! -f ${disk_path} ]] && echo "Could not find ${disk_path} disk file" && exit 1
-    if [[ -n $USB_PASSTHROUGH_HOSTBUS ]] && [[ -n $USB_PASSTHROUGH_HOSTADDR ]]; then
-        usb_passthrough="-usb -device usb-host,hostbus=$USB_PASSTHROUGH_HOSTBUS,hostaddr=$USB_PASSTHROUGH_HOSTADDR"
+    if [[ -n $USB_PASSTHROUGH_VID ]] && [[ -n $USB_PASSTHROUGH_PID ]]; then
+        usb_passthrough="-usb -device usb-host,productid=$USB_PASSTHROUGH_PID,vendorid=$USB_PASSTHROUGH_VID"
     fi
     cmd="qemu-system-x86_64 \
         ${disk_path} \
@@ -128,7 +127,7 @@ run_os() {
         -m ${mem} \
         -enable-kvm \
         -net nic -net user,smb=/mnt/qemu_shared \
-        -usb -device usb-host,productid=0x1040,vendorid=0x1bc7 \
+        -usb -device usb-host,productid=0xd00d,vendorid=0x18d1 \
         $usb_passthrough"
     echo $cmd
     sudo $cmd
@@ -138,15 +137,15 @@ run_os_host_kernel() {
     local img=$1
     local mem=$2
     local usb_passthrough=""
-    set -u
     [[ ! -f ${img} ]] && echo "Could not find ${img} disk file" && exit 1
-    if [[ -n $USB_PASSTHROUGH_HOSTBUS ]] && [[ -n $USB_PASSTHROUGH_HOSTADDR ]]; then
-        usb_passthrough="-usb -device usb-host,hostbus=$USB_PASSTHROUGH_HOSTBUS,hostaddr=$USB_PASSTHROUGH_HOSTADDR"
-    fi
     cmd="qemu-system-x86_64 \
         -kernel /boot/vmlinuz-`uname -r` \
-        -hda ${img} \
-        -append \"root=/dev/sda\"        "
+        -drive file=${img},index=1,media=disk,format=raw \
+        -append \"root=/dev/sda\" \
+        -enable-kvm \
+        -net nic -net user,smb=/mnt/qemu_shared \
+        -m $mem
+        "
     echo $cmd
     sudo $cmd
 }
