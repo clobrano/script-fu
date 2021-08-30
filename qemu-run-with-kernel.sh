@@ -6,14 +6,16 @@
 #                               In case of error the kernel reports the available
 #                               partitions, and I tried them all
 
-KERNEL="$HOME/workspace/linux/arch/x86/boot/bzImage"
-DISK="$HOME/workspace/rootfs/ubuntu20.04.3.img"
-RAM=2G
+# The bzImage path
+KERNEL="$1"
+# The QEMU image with installed OS, or at least a rootfs
+DISK="$2"
+RAM=4G
 VID="0x1bc7"
 PID="0x1040"
 
 set -x
-qemu-system-x86_64 \
+sudo qemu-system-x86_64 \
     -enable-kvm \
     -hda $DISK \
     -m $RAM \

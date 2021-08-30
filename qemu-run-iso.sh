@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 # This script runs QEMU using the ISO image (with the ISO image kernel)
 
-ISO_PATH="$HOME/workspace/rootfs/ubuntu20.04.3.img"
-MEM="2G"
+ISO_PATH="$1"
+MEM="4G"
 VID=0x1bc7
 PID=0x1040
 
@@ -13,7 +13,7 @@ PID=0x1040
 # -net nic -net user,smb=/mnt/qemu_shared
 
 set -x
-qemu-system-x86_64 \
+sudo qemu-system-x86_64 \
     ${ISO_PATH} \
     -M q35 \
     -smp 2 \
