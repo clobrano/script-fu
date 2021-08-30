@@ -11,8 +11,17 @@ KERNEL="$1"
 # The QEMU image with installed OS, or at least a rootfs
 DISK="$2"
 RAM=4G
-VID="0x1bc7"
-PID="0x1040"
+shift
+shift
+# VENDOR,PRODUCT ID pairs to pass to the VM in the format "0xABCD:0xEFGH 0xILMN:0xOPQR ..."
+USB_ID_LIST=( "$@" )
+usbpassthroug=""
+for id in "${USB_ID_LIST[@]}"; do
+    echo $id
+    VID=`echo $id | cut -d":" -f1`
+    PID=`echo $id | cut -d":" -f2`
+    usbpassthroug+="-usb -device usb-host,vendorid=$VID,productid=$PID "
+done
 
 set -x
 sudo qemu-system-x86_64 \
@@ -24,6 +33,6 @@ sudo qemu-system-x86_64 \
     -net nic -net user,hostfwd=tcp::2222-:22 \
     -serial stdio \
     -display none \
-    -usb -device usb-host,vendorid=$VID,productid=$PID
+    $usbpassthroug
 set +x
 
