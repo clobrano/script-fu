@@ -31,7 +31,7 @@ sudo qemu-system-x86_64 \
     -kernel $KERNEL \
     -append "root=/dev/sda5 console=ttyS0 rw" \
     -net nic -net user,hostfwd=tcp::2222-:22 \
-    -serial stdio \
+    -serial mon:stdio \
     -display none \
     $usbpassthroug
 set +x
