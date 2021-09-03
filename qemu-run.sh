@@ -1,8 +1,51 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 ## Helper script to run QEMU images from configuration file
-[[ -z $1 ]] && echo "[!] configuration file missing. Usage> qemu-run.sh configuration.conf" && exit 1
-CONF=$1
+## options:
+##     -c, --config <path> Path to the configuration file
+##     -e, --edit Edit the configuration file before running qemu
+
+# CLInt GENERATED_CODE: start
+
+# No-arguments is not allowed
+[ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
+
+# Converting long-options into short ones
+for arg in "$@"; do
+  shift
+  case "$arg" in
+"--config") set -- "$@" "-c";;
+"--edit") set -- "$@" "-e";;
+  *) set -- "$@" "$arg"
+  esac
+done
+
+function print_illegal() {
+    echo Unexpected flag in command line \"$@\"
+}
+
+# Parsing flags and arguments
+while getopts 'hec:' OPT; do
+    case $OPT in
+        h) sed -ne 's/^## \(.*\)/\1/p' $0
+           exit 1 ;;
+        e) _edit=1 ;;
+        c) _config=$OPTARG ;;
+        \?) print_illegal $@ >&2;
+            echo "---"
+            sed -ne 's/^## \(.*\)/\1/p' $0
+            exit 1
+            ;;
+    esac
+done
+# CLInt GENERATED_CODE: end
+
+CONF=$_config
+if [[ -n $_edit ]]; then
+    editor $CONF
+    echo "Run qemu with current $CONF? [ENTER/CTRL-C]"
+    read
+fi
 
 ARCH=`grep "ARCH=" "$CONF" | cut -d"=" -f2`
 ARCH=${ARCH:-"x86_64"}
