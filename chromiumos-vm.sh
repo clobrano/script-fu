@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 IMAGE=${1}
-KILL=${2:-0}
+KILL=${2:-""}
 MEM="4G"
 NET="10.0.2.0/27"
 SSHPORT=9222
@@ -9,7 +9,7 @@ PIDFILE=/tmp/qemu_$SSHPORT.pid
 
 set -eu
 
-if [[ ${KILL} != 0 ]]; then
+if [[ ${KILL} == "-k" ]]; then
     PID=`sudo cat $PIDFILE`
     echo "Killing QEMU $PID"
     sudo kill $PID
