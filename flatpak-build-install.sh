@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 json=`find . -name *.json`
+yaml=`find . -name *.yaml`
 
-echo install $json ?
+if [[ -f ${json} ]]; then
+    filename=$[json]
+else if [[ -f ${yaml} ]]; then
+    filename=${yaml}
+fi
+fi
+echo install $filename ?
 read
 set -x
-flatpak-builder builddir $json --force-clean --user --install
+flatpak-builder builddir ${filename} --force-clean --user --install
