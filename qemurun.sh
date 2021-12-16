@@ -65,6 +65,13 @@ HEADLESS=${HEADLESS:-"false"}
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
 
+PIDFILE=/tmp/qemu.pid
+
+if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
+    echo "[!] bzImage won't be used because HEADLESS is FALSE (set HEADLESS to TRUE to use bzImage)!"
+    echo "[+] Press ENTER to continue (or CTRL-C to interrupt)"
+    read
+fi
 
 # Build usb passthrough configuration
 usbpassthroug=""
@@ -77,6 +84,7 @@ done
 if [[ "$HEADLESS" = "true" ]]; then
     set -xu
     sudo qemu-system-$ARCH \
+        -pidfile $PIDFILE \
         -kernel $BZIMAGE \
         -append "root=/dev/sda5 console=ttyS0" -serial mon:stdio -display none \
         -hda $IMG \
@@ -87,6 +95,7 @@ if [[ "$HEADLESS" = "true" ]]; then
 else
     set -xu
     sudo qemu-system-$ARCH \
+        -pidfile $PIDFILE \
         -hda $IMG \
         -m ${RAM} \
         -enable-kvm \
