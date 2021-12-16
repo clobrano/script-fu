@@ -53,6 +53,9 @@ ARCH=${ARCH:-"x86_64"}
 BZIMAGE=`grep "BZIMAGE=" "$CONF" | cut -d"=" -f2`
 IMG=`grep "IMG=" "$CONF" | cut -d"=" -f2`
 
+ROOT=`grep "ROOT=" "$CONF" | cut -d"=" -f2`
+ROOT=${ROOT:-"/dev/sda5"}
+
 RAM=`grep "RAM=" "$CONF" | cut -d"=" -f2`
 RAM=${RAM:-"2G"}
 
@@ -86,7 +89,7 @@ if [[ "$HEADLESS" = "true" ]]; then
     sudo qemu-system-$ARCH \
         -pidfile $PIDFILE \
         -kernel $BZIMAGE \
-        -append "root=/dev/sda5 console=ttyS0" -serial mon:stdio -display none \
+        -append "root=$ROOT console=ttyS0" -serial mon:stdio -display none \
         -hda $IMG \
         -m $RAM \
         -enable-kvm \
