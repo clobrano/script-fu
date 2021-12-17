@@ -76,35 +76,46 @@ if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
     read
 fi
 
-# Build usb passthrough configuration
-usbpassthroug=""
+
+OPTS=""
+
+# PIDFILE to be able to shutdown the VM easily
+OPTS+=" -pidfile $PIDFILE"
+
+# Enable KVM
+OPTS+=" -enable-kvm"
+
+# Set RAM
+OPTS+=" -m $RAM"
+
+if [[ "$HEADLESS" = "true" ]]; then
+    # Kernel image to load and configurations
+    OPTS+=" -kernel $BZIMAGE"
+    OPTS+=" -append root=$ROOT"
+    #OPTS+=" -append root=$ROOT console=ttyS0"  WHY this doesn't work?!?
+    #OPTS+=" -serial mon:stdio -display none"
+fi
+
+# Set the IMG to use
+OPTS+=" -hda $IMG"
+
+# Configure VNC and SSH connection (does this really work?)
+OPTS+=" -net nic"
+OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
+
+# Build USB passthrough configuration
 for id in `echo $USBPASSTHROUGH`; do
     VID=`echo $id | cut -d":" -f1`
     PID=`echo $id | cut -d":" -f2`
-    usbpassthroug+="-usb -device usb-host,vendorid=$VID,productid=$PID "
+    OPTS+=" -usb -device usb-host,vendorid=$VID,productid=$PID"
 done
 
-if [[ "$HEADLESS" = "true" ]]; then
-    set -xu
-    sudo qemu-system-$ARCH \
-        -pidfile $PIDFILE \
-        -kernel $BZIMAGE \
-        -append "root=$ROOT console=ttyS0" -serial mon:stdio -display none \
-        -hda $IMG \
-        -m $RAM \
-        -enable-kvm \
-        -net nic -net user,hostfwd=tcp::$SSHPORTNO-:22 \
-        $usbpassthroug   
-else
-    set -xu
-    sudo qemu-system-$ARCH \
-        -pidfile $PIDFILE \
-        -hda $IMG \
-        -m ${RAM} \
-        -enable-kvm \
-        -M q35 \
-        -smp 2 \
-        -cpu host \
-        -net nic -net user,hostfwd=tcp::$SSHPORTNO-:22 \
-        $usbpassthroug
-fi
+set -u
+echo "[+] Running the following qemu line:"
+echo ""
+echo "sudo qemu-system-$ARCH $OPTS"
+echo " "
+echo "[+] Press ENTER to continue, CTRL-C to stop"
+read
+
+sudo qemu-system-$ARCH $OPTS
