@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 ## Helper script to run QEMU images from configuration file
 ## options:
+##     -n, --new Generate a new cfg file (to be used with --config to give file path)
 ##     -c, --config <path> Path to the configuration file
 ##     -e, --edit Edit the configuration file before running qemu
 
@@ -14,6 +15,7 @@
 for arg in "$@"; do
   shift
   case "$arg" in
+"--new") set -- "$@" "-n";;
 "--config") set -- "$@" "-c";;
 "--edit") set -- "$@" "-e";;
   *) set -- "$@" "$arg"
@@ -25,10 +27,11 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hec:' OPT; do
+while getopts 'hnec:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
+        n) _new=1 ;;
         e) _edit=1 ;;
         c) _config=$OPTARG ;;
         \?) print_illegal $@ >&2;
@@ -67,6 +70,21 @@ HEADLESS=${HEADLESS:-"false"}
 
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
+
+if [[ -n $_new ]]; then
+    echo "Creating new configuration file $_config"
+    if [[ -f $_config ]]; then
+        echo "[!] $_config file exists already!"
+        exit 1
+    fi
+    echo "ARCH=$ARCH" >> $_config
+    echo "RAM=$RAM" >> $_config
+    echo "IMG=" >> $_config
+    echo "ROOT=$ROOT" >> $_config
+    echo "HEADLESS=$HEADLESS" >> $_config
+    echo "SSHPORTNO=$SSHPORTNO" >> $_config
+    exit 0
+fi
 
 PIDFILE=/tmp/qemu.pid
 
