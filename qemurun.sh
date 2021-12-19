@@ -86,7 +86,6 @@ if [[ -n $_new ]]; then
     exit 0
 fi
 
-PIDFILE=/tmp/qemu.pid
 
 if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
     echo "[!] bzImage won't be used because HEADLESS is FALSE (set HEADLESS to TRUE to use bzImage)!"
@@ -98,7 +97,7 @@ fi
 OPTS=""
 
 # PIDFILE to be able to shutdown the VM easily
-OPTS+=" -pidfile $PIDFILE"
+OPTS+="-pidfile /tmp/qemu.pid"
 
 # Enable KVM
 OPTS+=" -enable-kvm"
