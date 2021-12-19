@@ -108,17 +108,17 @@ OPTS+=" -m $RAM"
 if [[ "$HEADLESS" = "true" ]]; then
     # Kernel image to load and configurations
     OPTS+=" -kernel $BZIMAGE"
-    OPTS+=" -append root=$ROOT"
-    #OPTS+=" -append root=$ROOT console=ttyS0"  WHY this doesn't work?!?
-    #OPTS+=" -serial mon:stdio -display none"
+    OPTS+=" -append \"root=$ROOT console=ttyS0 rw\""
+    OPTS+=" -serial mon:stdio"
+    OPTS+=" -display none"
 fi
 
 # Set the IMG to use
 OPTS+=" -hda $IMG"
 
 # Configure VNC and SSH connection (does this really work?)
-OPTS+=" -net nic"
 OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
+OPTS+=" -net nic"
 
 # Build USB passthrough configuration
 for id in `echo $USBPASSTHROUGH`; do
@@ -135,4 +135,5 @@ echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
 read
 
-sudo qemu-system-$ARCH $OPTS
+echo sudo qemu-system-$ARCH $OPTS | xclip -sel clipboard
+echo "[+] command copied into the clipboard"
