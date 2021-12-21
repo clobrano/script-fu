@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 ## Helper script to run QEMU images from configuration file
 ## options:
+##     -n, --new Generate a new cfg file (to be used with --config to give file path)
 ##     -c, --config <path> Path to the configuration file
 ##     -e, --edit Edit the configuration file before running qemu
 
@@ -14,6 +15,7 @@
 for arg in "$@"; do
   shift
   case "$arg" in
+"--new") set -- "$@" "-n";;
 "--config") set -- "$@" "-c";;
 "--edit") set -- "$@" "-e";;
   *) set -- "$@" "$arg"
@@ -25,10 +27,11 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hec:' OPT; do
+while getopts 'hnec:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
+        n) _new=1 ;;
         e) _edit=1 ;;
         c) _config=$OPTARG ;;
         \?) print_illegal $@ >&2;
@@ -68,7 +71,21 @@ SSHPORTNO=${SSHPORTNO:-2222}
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
 
-PIDFILE=/tmp/qemu.pid
+if [[ -n $_new ]]; then
+    echo "Creating new configuration file $_config"
+    if [[ -f $_config ]]; then
+        echo "[!] $_config file exists already!"
+        exit 1
+    fi
+    echo "ARCH=$ARCH" >> $_config
+    echo "RAM=$RAM" >> $_config
+    echo "IMG=" >> $_config
+    echo "ROOT=$ROOT" >> $_config
+    echo "HEADLESS=$HEADLESS" >> $_config
+    echo "SSHPORTNO=$SSHPORTNO" >> $_config
+    exit 0
+fi
+
 
 if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
     echo "[!] bzImage won't be used because HEADLESS is FALSE (set HEADLESS to TRUE to use bzImage)!"
@@ -80,7 +97,7 @@ fi
 OPTS=""
 
 # PIDFILE to be able to shutdown the VM easily
-OPTS+=" -pidfile $PIDFILE"
+OPTS+="-pidfile /tmp/qemu.pid"
 
 # Enable KVM
 OPTS+=" -enable-kvm"
@@ -97,19 +114,19 @@ OPTS+=" -cpu host"
 if [[ "$HEADLESS" = "true" ]]; then
     # Kernel image to load and configurations
     OPTS+=" -kernel $BZIMAGE"
-    OPTS+=" -append root=$ROOT"
     # No need to use much RAM in HEADLESS mode
     RAM=1G
-    #OPTS+=" -append root=$ROOT console=ttyS0"  WHY this doesn't work?!?
-    #OPTS+=" -serial mon:stdio -display none"
+    OPTS+=" -append \"root=$ROOT console=ttyS0 rw\""
+    OPTS+=" -serial mon:stdio"
+    OPTS+=" -display none"
 fi
 
 # Set the IMG to use
 OPTS+=" -hda $IMG"
 
 # Configure VNC and SSH connection (does this really work?)
-OPTS+=" -net nic"
 OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
+OPTS+=" -net nic"
 
 # Shared folder
 #OPTS+=" -net user,smb=/mnt/qemu_shared"
@@ -129,4 +146,5 @@ echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
 read
 
-sudo qemu-system-$ARCH $OPTS
+echo sudo qemu-system-$ARCH $OPTS | xclip -sel clipboard
+echo "[+] command copied into the clipboard"
