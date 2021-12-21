@@ -111,6 +111,9 @@ OPTS+=" -hda $IMG"
 OPTS+=" -net nic"
 OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
 
+# Shared folder
+#OPTS+=" -net user,smb=/mnt/qemu_shared"
+
 # Build USB passthrough configuration
 for id in `echo $USBPASSTHROUGH`; do
     VID=`echo $id | cut -d":" -f1`
