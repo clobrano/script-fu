@@ -47,6 +47,9 @@ if [[ -n $_edit ]]; then
     read
 fi
 
+HEADLESS=`grep "HEADLESS=" "$CONF" | cut -d"=" -f2`
+HEADLESS=${HEADLESS:-"false"}
+
 ARCH=`grep "ARCH=" "$CONF" | cut -d"=" -f2`
 ARCH=${ARCH:-"x86_64"}
 
@@ -61,9 +64,6 @@ RAM=${RAM:-"2G"}
 
 SSHPORTNO=`grep "SSHPORTNO=" "$CONF" | cut -d"=" -f2`
 SSHPORTNO=${SSHPORTNO:-2222}
-
-HEADLESS=`grep "HEADLESS=" "$CONF" | cut -d"=" -f2`
-HEADLESS=${HEADLESS:-"false"}
 
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
@@ -87,6 +87,12 @@ OPTS+=" -enable-kvm"
 
 # Set RAM
 OPTS+=" -m $RAM"
+
+# Set number of Cores
+OPTS+=" -smp 4"
+
+# Using Host cpu flags (?)
+OPTS+=" -cpu host"
 
 if [[ "$HEADLESS" = "true" ]]; then
     # Kernel image to load and configurations
