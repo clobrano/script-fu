@@ -9,5 +9,4 @@ prop_id=$(xinput list-props $dev_id | grep -o "libinput Accel Speed ([0-9]*)" | 
 
 # set property (prop_id has format "(<number>)" so it needs to be sliced)
 set -x
-xinput set-prop $dev_id ${prop_id:1:-1} -0.6
-
+xinput set-prop $dev_id ${prop_id:1:-1} -0.5
