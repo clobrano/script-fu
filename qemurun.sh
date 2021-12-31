@@ -50,6 +50,9 @@ if [[ -n $_edit ]]; then
     read
 fi
 
+HEADLESS=`grep "HEADLESS=" "$CONF" | cut -d"=" -f2`
+HEADLESS=${HEADLESS:-"false"}
+
 ARCH=`grep "ARCH=" "$CONF" | cut -d"=" -f2`
 ARCH=${ARCH:-"x86_64"}
 
@@ -64,9 +67,6 @@ RAM=${RAM:-"2G"}
 
 SSHPORTNO=`grep "SSHPORTNO=" "$CONF" | cut -d"=" -f2`
 SSHPORTNO=${SSHPORTNO:-2222}
-
-HEADLESS=`grep "HEADLESS=" "$CONF" | cut -d"=" -f2`
-HEADLESS=${HEADLESS:-"false"}
 
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
@@ -105,9 +105,17 @@ OPTS+=" -enable-kvm"
 # Set RAM
 OPTS+=" -m $RAM"
 
+# Set number of Cores
+OPTS+=" -smp 4"
+
+# Using Host cpu flags (?)
+OPTS+=" -cpu host"
+
 if [[ "$HEADLESS" = "true" ]]; then
     # Kernel image to load and configurations
     OPTS+=" -kernel $BZIMAGE"
+    # No need to use much RAM in HEADLESS mode
+    RAM=1G
     OPTS+=" -append \"root=$ROOT console=ttyS0 rw\""
     OPTS+=" -serial mon:stdio"
     OPTS+=" -display none"
@@ -119,6 +127,9 @@ OPTS+=" -hda $IMG"
 # Configure VNC and SSH connection (does this really work?)
 OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
 OPTS+=" -net nic"
+
+# Shared folder
+#OPTS+=" -net user,smb=/mnt/qemu_shared"
 
 # Build USB passthrough configuration
 for id in `echo $USBPASSTHROUGH`; do
