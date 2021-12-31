@@ -2,6 +2,13 @@
 # -*- coding: UTF-8 -*-
 set -u
 
+# is running X11?
+compositor=`loginctl show-session $(awk '/tty/ {print $1}' <(loginctl)) -p Type | awk -F= '{print $2}'`
+
+if [[ $compositor != "x11" ]]; then
+    echo "It seems you are running Wayland, which does not support this script"
+    exit 0
+fi
 # get trackpoint ID
 dev_id=$(xinput list | grep -i "trackpoint" | grep -o "id=[0-9]*" | cut -d'=' -f2)
 # get property ID
