@@ -1,33 +1,9 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-# This script runs QEMU using the ISO image (with the ISO image kernel)
+# This script runs QEMU aarch64 image (with the ISO image kernel)
+IMG=$1
 
-ISO_PATH="$1"
-shift
-MEM="4G"
-# VENDOR,PRODUCT ID pairs to pass to the VM in the format "0xABCD:0xEFGH 0xILMN:0xOPQR ..."
-USB_ID_LIST=( "$@" )
-usbpassthroug=""
-for id in "${USB_ID_LIST[@]}"; do
-    echo $id
-    VID=`echo $id | cut -d":" -f1`
-    PID=`echo $id | cut -d":" -f2`
-    usbpassthroug+="-usb -device usb-host,vendorid=$VID,productid=$PID "
-done
-
-[[ ! -f ${ISO_PATH} ]] && echo "Could not find ${ISO_PATH} disk file" && exit 1
-
-# add shared folder
-# -net nic -net user,smb=/mnt/qemu_shared
-
-set -x
-sudo qemu-system-x86_64 \
-    ${ISO_PATH} \
-    -M q35 \
-    -smp 2 \
-    -cpu host \
-    -m ${MEM} \
-    -enable-kvm \
-    -net nic -net user,hostfwd=tcp::2222-:22 \
-    -net nic \
-    $usbpassthroug
+qemu-system-aarch64 -nographic -machine virt,gic-version=max -m 2G -cpu max -smp 4 \
+    -netdev user,id=vnet,hostfwd=:127.0.0.1:0-:22 -device virtio-net-pci,netdev=vnet \
+    -drive file=${IMG},if=none,id=drive0,cache=writeback -device virtio-blk,drive=drive0,bootindex=0 \
+    -drive file=flash0.img,format=raw,if=pflash -drive file=flash1.img,format=raw,if=pflash
