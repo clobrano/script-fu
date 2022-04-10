@@ -8,3 +8,6 @@ extra_args=$@
 
 set -x
 uncrustify -c ${configuration} -f ${file} ${extra_args} | diff -u -- "${file}" -
+echo APPLY changes?
+read
+uncrustify -c ${configuration} -f ${file} ${extra_args} -o ${file}
