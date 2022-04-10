@@ -6,8 +6,8 @@ testlist="test-qcdm test-common-helpers test-pco test-at-serial-port test-charse
 
 pushd ~/workspace/telit/ModemManager
 
-find . \( -iname "*.h" -or -iname "*.c" \) | entr -c tmux-tdd.sh --name "ModemManager" --run "sudo meson test -C build ${testlist}"
-
+find . \( -iname "*.h" -or -iname "*.c" \) | \
+    entr -c tmux-tdd.sh --name "ModemManager" --run "sudo meson test -C build ${testlist}" --type "meson"
 popd
 
 tmux-tdd.sh --clean
