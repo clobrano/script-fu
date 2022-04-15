@@ -60,6 +60,9 @@ count_failures() {
     if [[ $type = "pytest" ]]; then
         failures=$(cat $log | grep -c -e FAILED -e ERROR)
     fi
+    if [[ $type = "gotest" ]]; then
+        failures=$(cat $log | grep -c -e FAIL)
+    fi
     echo $failures
 }
 
