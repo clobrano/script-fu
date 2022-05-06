@@ -73,20 +73,20 @@ fi
 
 if [[ ! -z $_run ]]; then
     when=$(date +%H:%M.%S)
-    echo "$_name Test ⏳ [$when]" > ${HOME}/.tdd-result
-    ${_run} | tee /tmp/tdd-running.log
+    echo "$when $_name test ⏳ " > ${HOME}/.tdd-result
+    ${_run} 2>&1 | tee /tmp/tdd-running.log
     retcode=${PIPESTATUS[0]}
     if [[ $retcode -gt 0 ]]; then
-        echo "$_name Test ⛔ [$when]" > ${HOME}/.tdd-result
+        echo "$when $_name test ⛔ " > ${HOME}/.tdd-result
         exit 1
     fi
     when=$(date +%H:%M.%S)
     failures=$(count_failures /tmp/tdd-running.log)
     if [[ $failures -gt 0 ]]; then
-        echo "$_name Test ⛔ [$when]" > ${HOME}/.tdd-result
+        echo "$when $_name test ⛔ " > ${HOME}/.tdd-result
         retcode=1
     else
-        echo "$_name Test ✅ [$when]" > ${HOME}/.tdd-result
+        echo "$when $_name test ✅ " > ${HOME}/.tdd-result
         retcode=0
     fi
     exit $retcode
