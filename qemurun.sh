@@ -135,6 +135,13 @@ for id in `echo $USBPASSTHROUGH`; do
     OPTS+=" -usb -device usb-host,vendorid=$VID,productid=$PID"
 done
 
+OPTS+=" -vga qxl"
+OPTS+=$SPICE
+# enable usb passthroug
+OPTS+=" -device qemu-xhci,id=spicepass \
+    -chardev spicevmc,id=usbredirchardev1,name=usbredir -device usb-redir,chardev=usbredirchardev1,id=usbredirdev1 \
+    -chardev spicevmc,id=usbredirchardev2,name=usbredir -device usb-redir,chardev=usbredirchardev2,id=usbredirdev2 \
+    -chardev spicevmc,id=usbredirchardev3,name=usbredir -device usb-redir,chardev=usbredirchardev3,id=usbredirdev3"
 set -u
 echo "[+] Running the following qemu line:"
 echo ""
