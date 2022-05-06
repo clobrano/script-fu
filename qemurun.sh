@@ -50,26 +50,23 @@ if [[ -n $_edit ]]; then
     read
 fi
 
-HEADLESS=`grep "HEADLESS=" "$CONF" | cut -d"=" -f2`
+HEADLESS=`grep "HEADLESS=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 HEADLESS=${HEADLESS:-"false"}
-
-ARCH=`grep "ARCH=" "$CONF" | cut -d"=" -f2`
+ARCH=`grep "ARCH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 ARCH=${ARCH:-"x86_64"}
-
-BZIMAGE=`grep "BZIMAGE=" "$CONF" | cut -d"=" -f2`
-IMG=`grep "IMG=" "$CONF" | cut -d"=" -f2`
-
-ROOT=`grep "ROOT=" "$CONF" | cut -d"=" -f2`
+BZIMAGE=`grep "BZIMAGE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+IMG=`grep "IMG=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+ROOT=`grep "ROOT=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 ROOT=${ROOT:-"/dev/sda5"}
-
-RAM=`grep "RAM=" "$CONF" | cut -d"=" -f2`
+RAM=`grep "RAM=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 RAM=${RAM:-"2G"}
-
-SSHPORTNO=`grep "SSHPORTNO=" "$CONF" | cut -d"=" -f2`
+SPICE=`grep "SPICE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+SPICE=${SPICE:-"false"}
+SSHPORTNO=`grep "SSHPORTNO=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 SSHPORTNO=${SSHPORTNO:-2222}
-
-USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" | cut -d"=" -f2`
+USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
+SPICE=" -spice port=5900,addr=127.0.0.1,disable-ticketing=on -device virtio-serial-pci -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent"
 
 if [[ -n $_new ]]; then
     echo "Creating new configuration file $_config"
