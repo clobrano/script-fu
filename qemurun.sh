@@ -122,8 +122,8 @@ fi
 OPTS+=" -drive file=$IMG,if=virtio"
 
 # Configure VNC and SSH connection (does this really work?)
-OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
-OPTS+=" -net nic"
+#OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
+#OPTS+=" -net nic"
 
 # Shared folder
 #OPTS+=" -net user,smb=/mnt/qemu_shared"
