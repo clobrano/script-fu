@@ -148,7 +148,6 @@ echo ""
 echo "sudo qemu-system-$ARCH $OPTS"
 echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
-read
 
 echo sudo qemu-system-$ARCH $OPTS | xclip -sel clipboard
 echo "[+] command copied into the clipboard"
