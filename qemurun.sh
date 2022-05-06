@@ -119,7 +119,7 @@ if [[ "$HEADLESS" = "true" ]]; then
 fi
 
 # Set the IMG to use
-OPTS+=" -hda $IMG"
+OPTS+=" -drive file=$IMG,if=virtio"
 
 # Configure VNC and SSH connection (does this really work?)
 OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
