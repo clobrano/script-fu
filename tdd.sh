@@ -63,6 +63,9 @@ count_failures() {
     if [[ $type = "gotest" ]]; then
         failures=$(cat $log | grep -c -e FAIL)
     fi
+    if [[ $type = "cpputest" ]]; then
+        failures=$(cat $log | grep -c -e FAILED -e Errors)
+    fi
     echo $failures
 }
 
@@ -73,19 +76,23 @@ fi
 
 if [[ ! -z $_run ]]; then
     when=$(date +%H:%M.%S)
-    echo "$_name TDD running [$when]" > ${HOME}/.tdd-result
-    ${_run} | tee /tmp/tdd-running.log
-    if [[ $? != 0 ]]; then
-        echo "$_name TDD error [$when]" > ${HOME}/.tdd-result
+    echo "$when $_name test ⏳ " > ${HOME}/.tdd-result
+    ${_run} 2>&1 | tee /tmp/tdd-running.log
+    retcode=${PIPESTATUS[0]}
+    if [[ $retcode -gt 0 ]]; then
+        echo "$when $_name test ⛔ " > ${HOME}/.tdd-result
+        exit 1
     fi
     when=$(date +%H:%M.%S)
     failures=$(count_failures /tmp/tdd-running.log)
     if [[ $failures -gt 0 ]]; then
-        echo "$_name TDD Fail [$when]" > ${HOME}/.tdd-result
+        echo "$when $_name test ⛔ " > ${HOME}/.tdd-result
+        retcode=1
     else
-        echo "$_name TDD OK [$when]" > ${HOME}/.tdd-result
+        echo "$when $_name test ✅ " > ${HOME}/.tdd-result
+        retcode=0
     fi
-    exit 0
+    exit $retcode
 fi
 
 echo "[!] either use --run or --clean flag!"
