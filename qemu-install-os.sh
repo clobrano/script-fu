@@ -5,10 +5,13 @@
 ##      -d, --disk <path>  Path to the IMG file (see qemu-create-image.sh)
 ##      -i, --iso <path>   Path to the ISO file
 ##      -a, --arch <name>  Architecture to use [default: x86_64]
+##      -m, --mem <memory> Memory size [default: 4G]
 
 # CLInt GENERATED_CODE: start
+# info: https://github.com/clobrano/CLInt.git
 # Default values
 _arch=x86_64
+_mem=4G
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
@@ -20,6 +23,7 @@ for arg in "$@"; do
 "--disk") set -- "$@" "-d";;
 "--iso") set -- "$@" "-i";;
 "--arch") set -- "$@" "-a";;
+"--mem") set -- "$@" "-m";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -29,13 +33,14 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hd:i:a:' OPT; do
+while getopts 'hd:i:a:m:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
         d) _disk=$OPTARG ;;
         i) _iso=$OPTARG ;;
         a) _arch=$OPTARG ;;
+        m) _mem=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -45,7 +50,6 @@ while getopts 'hd:i:a:' OPT; do
 done
 # CLInt GENERATED_CODE: end
 
-MEM=4G
 set -u
 
 [[ ! -f ${_iso} ]] && echo "Could not find '${_iso}' OS image file" && exit 1
@@ -66,6 +70,6 @@ if [[ ${_arch} == "aarch64" ]]; then
         -drive file=${_iso},if=none,id=drive1,cache=writeback -device virtio-blk,drive=drive1,bootindex=1 \
         -drive file=flash0.img,format=raw,if=pflash -drive file=flash1.img,format=raw,if=pflash 
 else
-    qemu-system-${_arch} -cdrom ${_iso} ${_disk} -m ${MEM} -enable-kvm
+    qemu-system-${_arch} -cdrom ${_iso} ${_disk} -m ${_mem} -enable-kvm
 fi
 
