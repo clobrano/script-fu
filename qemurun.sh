@@ -71,11 +71,8 @@ RAM=`grep "RAM=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 RAM=${RAM:-"2G"}
 SPICE=`grep "SPICE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 SPICE=${SPICE:-"false"}
-SSHPORTNO=`grep "SSHPORTNO=" "$CONF" 2>/dev/null | cut -d"=" -f2`
-SSHPORTNO=${SSHPORTNO:-2222}
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
-SPICE=" -spice port=5900,addr=127.0.0.1,disable-ticketing=on -device virtio-serial-pci -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0 -chardev spicevmc,id=spicechannel0,name=vdagent"
 
 if [[ -n $_new ]]; then
     echo "Creating new configuration file $_config"
@@ -100,63 +97,82 @@ if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
 fi
 
 
-OPTS=""
+OPTS=()
 
 # PIDFILE to be able to shutdown the VM easily
-OPTS+="-pidfile /tmp/qemu.pid"
+OPTS+=(-pidfile /tmp/qemu.pid)
 
 # Enable KVM
-OPTS+=" -enable-kvm"
+OPTS+=(-enable-kvm)
 
 # Set RAM
-OPTS+=" -m $RAM"
+OPTS+=( -m $RAM)
 
 # Set number of Cores
-OPTS+=" -smp 4"
+OPTS+=( -smp 4)
 
 # Using Host cpu flags (?)
-OPTS+=" -cpu host"
+OPTS+=( -cpu host)
 
 if [[ "$HEADLESS" = "true" ]]; then
     # Kernel image to load and configurations
-    OPTS+=" -kernel $BZIMAGE"
+    OPTS+=(-kernel $BZIMAGE)
     # No need to use much RAM in HEADLESS mode
     RAM=1G
-    OPTS+=" -append \"root=$ROOT console=ttyS0 rw\""
-    OPTS+=" -serial mon:stdio"
-    OPTS+=" -display none"
+    OPTS+=( -append "root=$ROOT console=ttyS0 rw")
+    OPTS+=(-serial mon:stdio)
+    OPTS+=(-display none)
 fi
 
 # Set the IMG to use
-OPTS+=" -drive file=$IMG,if=virtio"
+OPTS+=(-drive file=$IMG,if=virtio)
 
-# Configure VNC and SSH connection (does this really work?)
-#OPTS+=" -net user,hostfwd=tcp::$SSHPORTNO-:22"
-#OPTS+=" -net nic"
+echo $SPICE
+if [[ $SPICE = "true" ]]; then
+    # Spice configuration
+    OPTS+=(-vga qxl)
+    OPTS+=(-spice port=5900,addr=127.0.0.1,disable-ticketing=on
+            -device virtio-serial-pci
+            -device virtserialport,chardev=spicechannel0,name=com.redhat.spice.0
+            -chardev spicevmc,id=spicechannel0,name=vdagent)
 
-# Shared folder
-#OPTS+=" -net user,smb=/mnt/qemu_shared"
+    # enable usb passthroug
+    OPTS+=(-device qemu-xhci,id=spicepass
+            -chardev spicevmc,id=usbredirchardev1,name=usbredir
+            -device usb-redir,chardev=usbredirchardev1,id=usbredirdev1
+            -chardev spicevmc,id=usbredirchardev2,name=usbredir
+            -device usb-redir,chardev=usbredirchardev2,id=usbredirdev2
+            -chardev spicevmc,id=usbredirchardev3,name=usbredir
+            -device usb-redir,chardev=usbredirchardev3,id=usbredirdev3)
 
-# Build USB passthrough configuration
-for id in `echo $USBPASSTHROUGH`; do
-    VID=`echo $id | cut -d":" -f1`
-    PID=`echo $id | cut -d":" -f2`
-    OPTS+=" -usb -device usb-host,vendorid=$VID,productid=$PID"
-done
+    # filesystem sharing
+    PUBLIC=$(xdg-user-dir PUBLICSHARE)  
+    PUBLIC_TAG="public-${USER,,}"
+    OPTS+=(-virtfs local,path="${PUBLIC}",mount_tag="${PUBLIC_TAG}",security_model=mapped-xattr)
+else
+    # Try to build USB passthrough configuration (not actually working with spice)
+    for id in `echo $USBPASSTHROUGH`; do
+        VID=`echo $id | cut -d":" -f1`
+        PID=`echo $id | cut -d":" -f2`
+        OPTS+=(-usb -device usb-host,vendorid="$VID",productid="$PID")
+    done
+fi
 
-OPTS+=" -vga qxl"
-OPTS+=$SPICE
-# enable usb passthroug
-OPTS+=" -device qemu-xhci,id=spicepass \
-    -chardev spicevmc,id=usbredirchardev1,name=usbredir -device usb-redir,chardev=usbredirchardev1,id=usbredirdev1 \
-    -chardev spicevmc,id=usbredirchardev2,name=usbredir -device usb-redir,chardev=usbredirchardev2,id=usbredirdev2 \
-    -chardev spicevmc,id=usbredirchardev3,name=usbredir -device usb-redir,chardev=usbredirchardev3,id=usbredirdev3"
+ARGS="${OPTS[*]}"
+
 set -u
 echo "[+] Running the following qemu line:"
 echo ""
-echo "sudo qemu-system-$ARCH $OPTS"
+echo "qemu-system-$ARCH ${ARGS}"
 echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
+read
 
-echo sudo qemu-system-$ARCH $OPTS | xclip -sel clipboard
-echo "[+] command copied into the clipboard"
+qemu-system-$ARCH ${ARGS[@]} &
+if [[ $SPICE = "true" ]]; then
+    spicy -h 127.0.0.1 -p 5900
+fi
+
+if [[ -f /tmp/qemu.pid ]]; then
+    kill $(cat /tmp/qemu.pid)
+fi
