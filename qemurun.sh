@@ -2,9 +2,11 @@
 # -*- coding: UTF-8 -*-
 ## Helper script to run QEMU images from configuration file
 ## options:
-##     -n, --new Generate a new cfg file (to be used with --config to give file path)
-##     -c, --config <path> Path to the configuration file
-##     -e, --edit Edit the configuration file before running qemu
+##     -c, --config <path>  Path to the configuration file
+##     -n, --new            Generate a new cfg file (to be used with --config to give file path)
+##     -e, --edit           Edit the configuration file before running qemu
+##     -k, --kill           Kill the running VM
+
 
 # CLInt GENERATED_CODE: start
 
@@ -15,9 +17,10 @@
 for arg in "$@"; do
   shift
   case "$arg" in
-"--new") set -- "$@" "-n";;
 "--config") set -- "$@" "-c";;
+"--new") set -- "$@" "-n";;
 "--edit") set -- "$@" "-e";;
+"--kill") set -- "$@" "-k";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -27,12 +30,13 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hnec:' OPT; do
+while getopts 'hnekc:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
         n) _new=1 ;;
         e) _edit=1 ;;
+        k) _kill=1 ;;
         c) _config=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
@@ -42,6 +46,11 @@ while getopts 'hnec:' OPT; do
     esac
 done
 # CLInt GENERATED_CODE: end
+
+if [[ -n $_kill ]]; then
+    kill $(cat /tmp/qemu.pid)
+    exit 0
+fi
 
 CONF=$_config
 if [[ -n $_edit ]]; then
