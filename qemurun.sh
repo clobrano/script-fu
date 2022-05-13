@@ -2,13 +2,16 @@
 # -*- coding: UTF-8 -*-
 ## Helper script to run QEMU images from configuration file
 ## options:
-##     -c, --config <path>  Path to the configuration file
-##     -n, --new            Generate a new cfg file (to be used with --config to give file path)
-##     -e, --edit           Edit the configuration file before running qemu
-##     -k, --kill           Kill the running VM
+##     -c, --config <name>    Configuration name (e.g. ubuntu-22.04)
+##     -n, --new              Generate a new cfg file (to be used with --config to give file path)
+##     -s, --disk_size <size> Size of the disk IMG to be created (to be used with --new)
+##     -e, --edit             Edit the configuration file before running qemu (to be used with --config to give file path)
+##     -i, --iso <path>       Path to the ISO image to run (for installing the VM)
+##     -k, --kill             Kill the running VM
 
 
 # CLInt GENERATED_CODE: start
+# info: https://github.com/clobrano/CLInt.git
 
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
@@ -19,7 +22,9 @@ for arg in "$@"; do
   case "$arg" in
 "--config") set -- "$@" "-c";;
 "--new") set -- "$@" "-n";;
+"--disk_size") set -- "$@" "-s";;
 "--edit") set -- "$@" "-e";;
+"--iso") set -- "$@" "-i";;
 "--kill") set -- "$@" "-k";;
   *) set -- "$@" "$arg"
   esac
@@ -30,7 +35,7 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hnekc:' OPT; do
+while getopts 'hnekc:s:i:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
@@ -38,6 +43,8 @@ while getopts 'hnekc:' OPT; do
         e) _edit=1 ;;
         k) _kill=1 ;;
         c) _config=$OPTARG ;;
+        s) _disk_size=$OPTARG ;;
+        i) _iso=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' $0
@@ -52,40 +59,54 @@ if [[ -n $_kill ]]; then
     exit 0
 fi
 
-CONF=$_config
+CONF_NAME=$_config
+CONF=${CONF_NAME}/${CONF_NAME}.cfg
+
 if [[ -n $_edit ]]; then
-    editor $CONF
+    edit $CONF
     echo "Run qemu with current $CONF? [ENTER/CTRL-C]"
     read
 fi
 
-HEADLESS=`grep "HEADLESS=" "$CONF" 2>/dev/null | cut -d"=" -f2`
-HEADLESS=${HEADLESS:-"false"}
 ARCH=`grep "ARCH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 ARCH=${ARCH:-"x86_64"}
 BZIMAGE=`grep "BZIMAGE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+DISK=`grep "DISK=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+DISK=${DISK:-"30G"}
+HEADLESS=`grep "HEADLESS=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+HEADLESS=${HEADLESS:-"false"}
 IMG=`grep "IMG=" "$CONF" 2>/dev/null | cut -d"=" -f2`
-ROOT=`grep "ROOT=" "$CONF" 2>/dev/null | cut -d"=" -f2`
-ROOT=${ROOT:-"/dev/sda5"}
+IMG=${IMG:-"$CONF_NAME".img}
 RAM=`grep "RAM=" "$CONF" 2>/dev/null | cut -d"=" -f2`
-RAM=${RAM:-"2G"}
+RAM=${RAM:-"4G"}
+ROOT=`grep "ROOT=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+ROOT=${ROOT:-"/dev/sda3"}
 SPICE=`grep "SPICE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
-SPICE=${SPICE:-"false"}
+SPICE=${SPICE:-"true"}
+SSHPORTNO=`grep "SSHPORTNO=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+SSHPORTNO=${SSHPORTNO:-"2222"}
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 USBPASSTHROUGH=${USBPASSTHROUGH:-""}
 
+
 if [[ -n $_new ]]; then
-    echo "Creating new configuration file $_config"
-    if [[ -f $_config ]]; then
-        echo "[!] $_config file exists already!"
-        exit 1
+    echo "[+] Creating new configuration file $CONF"
+    [[ -f "$CONF" ]] && echo "[!] $CONF file exists already!" && exit 1
+    [[ ! -d "$CONF_NAME" ]] && mkdir "$CONF_NAME"
+    [[ -n $_disk_size ]] && DISK=$_disk_size
+
+    echo "ARCH=$ARCH" > $CONF
+    echo "BZIMAGE=$BZIMAGE" >> $CONF
+    echo "DISK=$DISK" >> $CONF
+    echo "HEADLESS=$HEADLESS" >> $CONF
+    echo "IMG=$IMG" >> $CONF
+    echo "RAM=$RAM" >> $CONF
+    echo "ROOT=$ROOT" >> $CONF
+    echo "SPICE=$SPICE" >> $CONF
+    echo "SSHPORTNO=$SSHPORTNO" >> $CONF
+    if [[ -n $USBPASSTHROUGH ]]; then
+        echo "USBPASSTHROUGH=$USBPASSTHROUGH" >> $CONF
     fi
-    echo "ARCH=$ARCH" >> $_config
-    echo "RAM=$RAM" >> $_config
-    echo "IMG=" >> $_config
-    echo "ROOT=$ROOT" >> $_config
-    echo "HEADLESS=$HEADLESS" >> $_config
-    echo "SSHPORTNO=$SSHPORTNO" >> $_config
     exit 0
 fi
 
@@ -98,6 +119,10 @@ fi
 
 
 OPTS=()
+
+if [[ -n $_iso ]]; then
+OPTS+=(-cdrom ${_iso})
+fi
 
 # PIDFILE to be able to shutdown the VM easily
 OPTS+=(-pidfile /tmp/qemu.pid)
@@ -125,7 +150,7 @@ if [[ "$HEADLESS" = "true" ]]; then
 fi
 
 # Set the IMG to use
-OPTS+=(-drive file=$IMG,if=virtio)
+OPTS+=(-drive file="$CONF_NAME"/"$IMG",if=virtio)
 
 echo $SPICE
 if [[ $SPICE = "true" ]]; then
@@ -170,7 +195,7 @@ read
 
 qemu-system-$ARCH ${ARGS[@]} &
 if [[ $SPICE = "true" ]]; then
-    spicy -h 127.0.0.1 -p 5900
+    spicy -h 127.0.0.1 -p 5900 &
 fi
 
 if [[ -f /tmp/qemu.pid ]]; then
