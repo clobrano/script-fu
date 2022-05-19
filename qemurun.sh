@@ -93,7 +93,10 @@ if [[ -n $_new ]]; then
     echo "[+] Creating new configuration file $CONF"
     [[ -f "$CONF" ]] && echo "[!] $CONF file exists already!" && exit 1
     [[ ! -d "$CONF_NAME" ]] && mkdir "$CONF_NAME"
-    [[ -n $_disk_size ]] && DISK=$_disk_size
+    if [[ -n $_disk_size ]]; then
+        DISK=$_disk_size
+        qemu-img create -f qcow2 ${CONF_NAME}/$IMG $_disk_size
+    fi
 
     echo "ARCH=$ARCH" > $CONF
     echo "BZIMAGE=$BZIMAGE" >> $CONF
