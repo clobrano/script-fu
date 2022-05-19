@@ -25,11 +25,12 @@ done
 
 set -x
 sudo qemu-system-x86_64 \
+    -pidfile /tmp/qemu.pid \
     -enable-kvm \
-    -hda $DISK \
+    -drive file=$DISK \
     -m $RAM \
     -kernel $KERNEL \
-    -append "root=/dev/sda5 console=ttyS0 rw" \
+    -append "root=/dev/sda3 console=ttyS0 rw" \
     -net nic -net user,hostfwd=tcp::2222-:22 \
     -serial mon:stdio \
     -display none \
