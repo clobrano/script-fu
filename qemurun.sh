@@ -144,7 +144,7 @@ OPTS+=( -smp 4)
 # Using Host cpu flags (?)
 OPTS+=( -cpu host)
 
-if [[ "$HEADLESS" = "true" ]]; then
+if [[ -n "$BZIMAGE" ]]; then
     # Kernel image to load and configurations
     OPTS+=(-kernel $BZIMAGE)
     # No need to use much RAM in HEADLESS mode
