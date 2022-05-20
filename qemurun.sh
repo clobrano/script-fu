@@ -83,6 +83,8 @@ ROOT=`grep "ROOT=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 ROOT=${ROOT:-"/dev/sda3"}
 SPICE=`grep "SPICE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 SPICE=${SPICE:-"true"}
+SPICY=`grep "SPICY=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+SPICY=${SPICY:-"false"}
 SSHPORTNO=`grep "SSHPORTNO=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 SSHPORTNO=${SSHPORTNO:-"2222"}
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
@@ -198,9 +200,11 @@ read
 
 qemu-system-$ARCH ${ARGS[@]} &
 if [[ $SPICE = "true" ]]; then
+if [[ $SPICY = "true" ]]; then
     spicy -h 127.0.0.1 -p 5900 &
+    if [[ -f /tmp/qemu.pid ]]; then
+        kill $(cat /tmp/qemu.pid)
+    fi
 fi
 
-if [[ -f /tmp/qemu.pid ]]; then
-    kill $(cat /tmp/qemu.pid)
-fi
+
