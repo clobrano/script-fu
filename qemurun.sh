@@ -148,7 +148,6 @@ if [[ "$HEADLESS" = "true" ]]; then
     # Kernel image to load and configurations
     OPTS+=(-kernel $BZIMAGE)
     # No need to use much RAM in HEADLESS mode
-    RAM=1G
     OPTS+=( -append \"root=$ROOT console=ttyS0 rw\")
     OPTS+=(-serial mon:stdio)
     OPTS+=(-display none)
