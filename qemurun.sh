@@ -198,8 +198,10 @@ echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
 read
 
-qemu-system-$ARCH ${ARGS[@]} &
-if [[ $SPICE = "true" ]]; then
+echo qemu-system-$ARCH ${ARGS[@]} > /tmp/qemu-runner-script.sh
+chmod +x /tmp/qemu-runner-script.sh
+/tmp/script.sh &
+
 if [[ $SPICY = "true" ]]; then
     spicy -h 127.0.0.1 -p 5900 &
     if [[ -f /tmp/qemu.pid ]]; then
