@@ -190,9 +190,10 @@ echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
 read
 
-echo qemu-system-$ARCH ${ARGS[@]} > /tmp/qemu-runner-script.sh
-chmod +x /tmp/qemu-runner-script.sh
-/tmp/script.sh &
+RUNNER=/tmp/qemu-runner-script.sh
+echo qemu-system-$ARCH ${ARGS[@]} > $RUNNER
+chmod +x $RUNNER
+$RUNNER &
 
 if [[ $SPICY = "true" ]]; then
     spicy -h 127.0.0.1 -p 5900 &
