@@ -178,13 +178,6 @@ if [[ $SPICE = "true" ]]; then
     PUBLIC=$(xdg-user-dir PUBLICSHARE)  
     PUBLIC_TAG="public-${USER,,}"
     OPTS+=(-virtfs local,path="${PUBLIC}",mount_tag="${PUBLIC_TAG}",security_model=mapped-xattr)
-else
-    # Try to build USB passthrough configuration (not actually working with spice)
-    for id in `echo $USBPASSTHROUGH`; do
-        VID=`echo $id | cut -d":" -f1`
-        PID=`echo $id | cut -d":" -f2`
-        OPTS+=(-usb -device usb-host,vendorid="$VID",productid="$PID")
-    done
 fi
 
 ARGS="${OPTS[*]}"
