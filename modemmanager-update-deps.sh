@@ -7,13 +7,16 @@ set -e
 deps=(libqrtr-glib libqmi libmbim)
 for dep in ${deps[@]}; do
     pushd $dep
+
+    echo [+] Updating $dep
+    git checkout main
+    git pull origin main
+
     if [[ ! -d build ]]; then
         meson build --prefix=/usr
     fi
     pushd build
-    echo [+] Updating $dep
-    git checkout main
-    git pull origin main
+    echo [+] building $dep
     ninja
     ninja install
     popd
