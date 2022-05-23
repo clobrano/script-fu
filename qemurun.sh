@@ -83,6 +83,8 @@ ROOT=`grep "ROOT=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 ROOT=${ROOT:-"/dev/sda3"}
 SPICE=`grep "SPICE=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 SPICE=${SPICE:-"true"}
+SPICY=`grep "SPICY=" "$CONF" 2>/dev/null | cut -d"=" -f2`
+SPICY=${SPICY:-"false"}
 SSHPORTNO=`grep "SSHPORTNO=" "$CONF" 2>/dev/null | cut -d"=" -f2`
 SSHPORTNO=${SSHPORTNO:-"2222"}
 USBPASSTHROUGH=`grep "USBPASSTHROUGH=" "$CONF" 2>/dev/null | cut -d"=" -f2`
@@ -142,12 +144,11 @@ OPTS+=( -smp 4)
 # Using Host cpu flags (?)
 OPTS+=( -cpu host)
 
-if [[ "$HEADLESS" = "true" ]]; then
+if [[ -n "$BZIMAGE" ]]; then
     # Kernel image to load and configurations
     OPTS+=(-kernel $BZIMAGE)
     # No need to use much RAM in HEADLESS mode
-    RAM=1G
-    OPTS+=( -append "root=$ROOT console=ttyS0 rw")
+    OPTS+=( -append \"root=$ROOT console=ttyS0 rw\")
     OPTS+=(-serial mon:stdio)
     OPTS+=(-display none)
 fi
@@ -196,11 +197,15 @@ echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
 read
 
-qemu-system-$ARCH ${ARGS[@]} &
-if [[ $SPICE = "true" ]]; then
+echo qemu-system-$ARCH ${ARGS[@]} > /tmp/qemu-runner-script.sh
+chmod +x /tmp/qemu-runner-script.sh
+/tmp/script.sh &
+
+if [[ $SPICY = "true" ]]; then
     spicy -h 127.0.0.1 -p 5900 &
+    if [[ -f /tmp/qemu.pid ]]; then
+        kill $(cat /tmp/qemu.pid)
+    fi
 fi
 
-if [[ -f /tmp/qemu.pid ]]; then
-    kill $(cat /tmp/qemu.pid)
-fi
+
