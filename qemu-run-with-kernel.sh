@@ -30,8 +30,9 @@ sudo qemu-system-x86_64 \
     -drive file=$DISK \
     -m $RAM \
     -kernel $KERNEL \
+    -net user,hostfwd=tcp::2222-:22 \
+    -net nic \
     -append "root=/dev/sda3 console=ttyS0 rw" \
-    -net nic -net user,hostfwd=tcp::2222-:22 \
     -serial mon:stdio \
     -display none \
     $usbpassthroug
