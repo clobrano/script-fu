@@ -189,7 +189,7 @@ chmod +x $RUNNER
 $RUNNER &
 
 if [[ $SPICY = "true" ]]; then
-    spicy -h 127.0.0.1 -p 5900 &
+    spicy -h 127.0.0.1 -p 5900
     if [[ -f /tmp/qemu.pid ]]; then
         kill $(cat /tmp/qemu.pid)
     fi
