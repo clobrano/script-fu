@@ -116,13 +116,6 @@ if [[ -n $_new ]]; then
 fi
 
 
-if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
-    echo "[!] bzImage won't be used because HEADLESS is FALSE (set HEADLESS to TRUE to use bzImage)!"
-    echo "[+] Press ENTER to continue (or CTRL-C to interrupt)"
-    read
-fi
-
-
 OPTS=()
 
 if [[ -n $_iso ]]; then
@@ -178,13 +171,6 @@ if [[ $SPICE = "true" ]]; then
     PUBLIC=$(xdg-user-dir PUBLICSHARE)  
     PUBLIC_TAG="public-${USER,,}"
     OPTS+=(-virtfs local,path="${PUBLIC}",mount_tag="${PUBLIC_TAG}",security_model=mapped-xattr)
-else
-    # Try to build USB passthrough configuration (not actually working with spice)
-    for id in `echo $USBPASSTHROUGH`; do
-        VID=`echo $id | cut -d":" -f1`
-        PID=`echo $id | cut -d":" -f2`
-        OPTS+=(-usb -device usb-host,vendorid="$VID",productid="$PID")
-    done
 fi
 
 ARGS="${OPTS[*]}"
@@ -197,12 +183,13 @@ echo " "
 echo "[+] Press ENTER to continue, CTRL-C to stop"
 read
 
-echo qemu-system-$ARCH ${ARGS[@]} > /tmp/qemu-runner-script.sh
-chmod +x /tmp/qemu-runner-script.sh
-/tmp/script.sh &
+RUNNER=/tmp/qemu-runner-script.sh
+echo qemu-system-$ARCH ${ARGS[@]} > $RUNNER
+chmod +x $RUNNER
+$RUNNER &
 
 if [[ $SPICY = "true" ]]; then
-    spicy -h 127.0.0.1 -p 5900 &
+    spicy -h 127.0.0.1 -p 5900
     if [[ -f /tmp/qemu.pid ]]; then
         kill $(cat /tmp/qemu.pid)
     fi
