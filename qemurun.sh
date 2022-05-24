@@ -116,13 +116,6 @@ if [[ -n $_new ]]; then
 fi
 
 
-if [[ -n $BZIMAGE ]] && [[ $HEADLESS == "false" ]]; then
-    echo "[!] bzImage won't be used because HEADLESS is FALSE (set HEADLESS to TRUE to use bzImage)!"
-    echo "[+] Press ENTER to continue (or CTRL-C to interrupt)"
-    read
-fi
-
-
 OPTS=()
 
 if [[ -n $_iso ]]; then
