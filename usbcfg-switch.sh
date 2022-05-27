@@ -79,12 +79,6 @@ check_pid_exists(){
     fi
 }
 
-show_available_usbconfigs(){
-    local 
-    echo "$modem modes"
-    echo "${!modes}"
-}
-
 choose_mode() {
     echo [+] choose a new usbcfg mode from above list
     read mode
