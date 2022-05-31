@@ -96,6 +96,7 @@ choose_mode() {
 # --- FUNCTIONS END ---
 
 # --- MAIN ---
+set -e
 check_dependencies
 check_pid_exists
 case ${_pid} in
