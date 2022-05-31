@@ -72,6 +72,15 @@ EOF
 # --- MODES END ---
 
 # --- FUNCTIONS START ---
+check_dependencies() {
+    dependencies=(sendat expect)
+    for dependency in ${dependencies[@]}; do
+        if ! which $dependency 1>/dev/null; then
+            echo [!] "$dependency" binary not found. Please install it
+            exit -1
+        fi
+    done
+}
 check_pid_exists(){
     if ! lsusb | grep $_pid 2>/dev/null; then
         echo [!] no device with PID $_pid seems connected
@@ -87,6 +96,7 @@ choose_mode() {
 # --- FUNCTIONS END ---
 
 # --- MAIN ---
+check_dependencies
 check_pid_exists
 case ${_pid} in
     1040|1042|1041|1043)
