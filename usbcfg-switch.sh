@@ -54,6 +54,15 @@ LE910Cx_modes=$(cat << EOF
 6	1251	RNDIS+NMEA+MODEM+MODEM+SAP
 EOF
 )
+LE910_V2_modes=$(cat << EOF
+0  0036   NCM
+1  0034   
+2  0035   
+3  0032   MBIM+NCM
+4  0037   NCM
+5  0033   MBIM+NCM
+EOF
+)
 LM9x0_modes=$(cat << EOF
 0	1042	RNDIS DIAG ADB NMEA MODEM MODEM AUX
 1	1040	DIAG ADB RMnet NMEA MODEM MODEM AUX
@@ -100,15 +109,25 @@ set -e
 check_dependencies
 check_pid_exists
 case ${_pid} in
+
+    0036|0034|0035|0032|0037|0033)
+        modem="LE910_V2"
+        tty=/dev/ttyACM0
+        NEED_RESET=1
+        ;;
     1040|1042|1041|1043)
         modem="LM9x0"
         tty=/dev/ttyUSB3
         ;;
-    1201|1203|1204|1205|1206|1250|1251)
+    1201|1203|1204|1205|1206|1251)
         modem="LE910Cx"
         tty=/dev/ttyUSB3
         ;;
-    1062|1060|1061|1063|1064)
+    1250)
+        modem="LE910Cx"
+        tty=/dev/ttyUSB1
+        ;;
+    1062|1060|1061|1063|1064|1066)
         modem="LN920"
         tty=/dev/ttyUSB3
         ;;
@@ -147,13 +166,22 @@ set -x
 sudo sendat -p $tty -c 'at#usbcfg='$mode
 set +x
 
-echo [+] waiting $_timeout seconds for the modem to reconfigure into $next_pid...
+if [[ -n $NEED_RESET ]]; then
+    sudo sendat -p $tty -c 'at#reboot'
+fi
+
+dmesg_minor_version=$(dmesg --version | cut -d" " -f4 | cut -d"." -f2)
+
+# dmesg --follow-new flag is supported from minor version 37 only
+if [[ $dmesg_minor_version -ge 37 ]]; then
+    echo [+] waiting $_timeout seconds for the modem to reconfigure into $next_pid...
 /usr/bin/expect <<EOF
 set timeout $_timeout
-spawn dmesg -TW
+spawn dmesg --ctime --follow-new
 expect {
     timeout { send_user "\nWait timed out. Either the modem is slower or did not reconfigure correctly, please check manually.\n"; exit 1 }
     eof { send_user "\ncould not get dmesg\n"; exit 1 }
     "New USB device found*idProduct=$next_pid*" { send_user "\nModem reconfigured correctly\n"; exit 0 }
 }
 EOF
+fi
