@@ -43,6 +43,8 @@ done
 # CLInt GENERATED_CODE: end
 
 
+NEED_RESET=0
+
 # --- MODES START ---
 LE910Cx_modes=$(cat << EOF
 0	1201	DIAG+ADB+RmNet+NMEA+MODEM+MODEM+SAP
@@ -166,7 +168,7 @@ set -x
 sudo sendat -p $tty -c 'at#usbcfg='$mode
 set +x
 
-if [[ -n $NEED_RESET ]]; then
+if [[ $NEED_RESET == 1 ]]; then
     sudo sendat -p $tty -c 'at#reboot'
 fi
 
