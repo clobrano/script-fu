@@ -121,12 +121,10 @@ case ${_pid} in
         modem="LM9x0"
         tty=/dev/ttyUSB3
         ;;
-    1201|1203|1204|1205|1206|1251)
+    1201|1203|1204|1205|1206|1250|1251)
         modem="LE910Cx"
         tty=/dev/ttyUSB3
         ;;
-    1250)
-        modem="LE910Cx"
         tty=/dev/ttyUSB1
         ;;
     1062|1060|1061|1063|1064|1066)
