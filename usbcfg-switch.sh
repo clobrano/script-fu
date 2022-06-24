@@ -56,6 +56,16 @@ LE910Cx_modes=$(cat << EOF
 6	1251	RNDIS+NMEA+MODEM+MODEM+SAP
 EOF
 )
+LE910CxThreadx_modes=$(cat <<EOF
+0   1031    DIAG+MODEM+MODEM+RmNet
+1   1033    DIAG+MODEM+MODEM+ECM
+2   1034    MODEM+MODEM+RmNet
+3   0135    MODEM+MODEM+ECM
+4   1036    MODEM+MODEM
+5   1037    DIAG+SER+MODEM+MODEM+RmNet
+6   1038    SER+MODEM+MODEM+RmNet
+EOF
+)
 LE910_V2_modes=$(cat << EOF
 0  0036   NCM
 1  0034   
@@ -111,7 +121,6 @@ set -e
 check_dependencies
 check_pid_exists
 case ${_pid} in
-
     0036|0034|0035|0032|0037|0033)
         modem="LE910_V2"
         tty=/dev/ttyACM0
@@ -125,6 +134,8 @@ case ${_pid} in
         modem="LE910Cx"
         tty=/dev/ttyUSB3
         ;;
+    1031|1033|1034|1035|1036|1037|1038)
+        modem="LE910CxThreadx"
         tty=/dev/ttyUSB1
         ;;
     1062|1060|1061|1063|1064|1066)
