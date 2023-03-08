@@ -8,7 +8,7 @@
 ## possibly with some intelligence and natural language processing converting time.
 
 ## options
-##    <time>        Set new timer (e.g. 10:00, 1 hour, 30 minutes, ...)
+##    <time>        Set new timer (e.g. 10:00, + 1 hour, ...)
 ##    -g, --get     Get current timer
 
 # CLInt GENERATED_CODE: start
