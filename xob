@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Helper tool to open web bookmarks stored in $HOME/.bookmarks file
+# each line of the bookmark file is expected to be made of two elements:
+# - a keyword
+# - the http link
+xdg-open `grep $1 ~/.bookmarks| awk '{print $2}'` 2>/dev/null
