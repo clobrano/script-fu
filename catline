@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+## Read 1 line from file
+filename="${1}"
+line=$2
+
+file_len=`wc -l "${filename}" | cut -d" " -f1`
+
+if [[ $file_len -lt $line ]]; then
+    echo "[!] line $line is out of bounds (max: $file_len)"
+    exit 1
+fi
+
+head -$line "${filename}" | tail -1
