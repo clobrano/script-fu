@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+set -ue
+filename=$1
+lineno=$2
+
+
+[[ ! -f $filename ]] && (echo "[!] $filename does not exists")
+echo "[+] deleting line $lineno from $filename?"
+catline $filename $lineno
+read
+set -x
+nvim +${lineno}d "${filename}" -c wq
