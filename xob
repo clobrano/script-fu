@@ -1,6 +1,25 @@
 #!/usr/bin/env bash
+# XOB: Xdg-Open Bookmark
 # Helper tool to open web bookmarks stored in $HOME/.bookmarks file
 # each line of the bookmark file is expected to be made of two elements:
 # - a keyword
 # - the http link
-xdg-open `grep $1 ~/.bookmarks| awk '{print $2}'` 2>/dev/null
+
+BOOKMARKS="$HOME/Documents/bookmarks"
+
+if [[ -z $1 ]]; then
+    cat ${BOOKMARKS}
+    exit 0
+fi
+
+if [[ $(grep -c $1 "${BOOKMARKS}") -eq 0 ]]; then 
+    echo "[!] No bookmarks with filter: $1"
+    exit 1
+fi
+if [[ $(grep -c $1 "${BOOKMARKS}") -gt 1 ]]; then 
+    echo "[!] Too many ($(grep -c $1 "${BOOKMARKS}")) bookmarks with filter: $1"
+    $(grep $1 "${BOOKMARKS}")
+    exit 1
+fi
+
+xdg-open `grep $1 "${BOOKMARKS}"| awk '{print $2}'` 2>&1>/dev/null
