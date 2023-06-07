@@ -1,23 +1,24 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 query=$1
-pid=$(pgrep "${query}")
+pids=( $(pgrep "${query}") )
 
-occurrences=$(echo "${pid}" | wc -w)
+occurrences=${#pids[@]}
 if [[ ${occurrences} -eq 0 ]]; then
     echo "[!] No matching processes for query: \"${query}\"."
     exit 1
 fi
-if [[ ${occurrences} -gt 1 ]]; then
-    echo "[!] found too many (${occurrences}) matching processes. Use a more specific query"
-    exit 1
-fi
 
-# read process' command line
+echo "[+] found ${occurrences} the following process(es). Confirm one:"
+for i in ${!pids[@]}; do
+    pid=${pids[$i]}
+    cmd=$(cat /proc/${pid}/cmdline | sed -e "s/\x00/ /g"; echo)
+    echo "- type $i for pid: \"${pid}\", with cmdline: \"${cmd}\""
+done
+
+read sel
+pid=${pids[$sel]}
 cmd=$(cat /proc/${pid}/cmdline | sed -e "s/\x00/ /g"; echo)
-echo "got pid: \"${pid}\" for query: \"${query}\", with cmdline: \"${cmd}\""
-echo "confirm?"
-read
 
-echo "Let's wait"
+echo -e "Let's wait for ${pid}: \e[4m${cmd}\e[0m to end"
 tail --pid=${pid} --follow /dev/null
