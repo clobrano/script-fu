@@ -12,14 +12,15 @@ if [[ -z $1 ]]; then
     exit 0
 fi
 
-if [[ $(grep -c $1 "${BOOKMARKS}") -eq 0 ]]; then 
+if [[ $(awk '{print $1}' "${BOOKMARKS}" | grep -c $1) -eq 0 ]]; then 
     echo "[!] No bookmarks with filter: $1"
     exit 1
 fi
-if [[ $(grep -c $1 "${BOOKMARKS}") -gt 1 ]]; then 
+if [[ $(awk '{print $1}' "${BOOKMARKS}" | grep -c $1) -gt 1 ]]; then 
     echo "[!] Too many ($(grep -c $1 "${BOOKMARKS}")) bookmarks with filter: $1"
     $(grep $1 "${BOOKMARKS}")
     exit 1
 fi
 
-xdg-open `grep $1 "${BOOKMARKS}"| awk '{print $2}'` 2>&1>/dev/null
+key=$(awk '{print $1}' "${BOOKMARKS}" | grep $1)
+xdg-open `grep ${key} "${BOOKMARKS}" | awk '{print $2}'` 2>&1>/dev/null
