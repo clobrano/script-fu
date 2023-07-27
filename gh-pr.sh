@@ -5,10 +5,10 @@
 
 # .zshrc gh pr list command extended with fzf, see the man page (man fzf) for an explanation of the arguments.
 [[ ! "$(git rev-parse --is-inside-work-tree)" ]] && return 1
-GH_COMMAND='gh pr list --state open --json number,author,additions,deletions,updatedAt,title --template "
-{{- tablerow (\"PR\" | color \"blue+b\") (\"LAST UPDATE\" | color \"blue+b\") (\"AUTHOR\" | color \"blue+b\") \"\" \"\" (\"TITLE\" | color \"blue+b\") -}}
+GH_COMMAND='gh pr list --state open --json number,author,headRefName,additions,deletions,updatedAt,title --template "
+{{- tablerow (\"PR\" | color \"blue+b\") (\"LAST UPDATE\" | color \"blue+b\") (\"AUTHOR\" | color \"blue+b\") (\"BRANCH\" | color \"blue+b\") \"\" \"\" (\"TITLE\" | color \"blue+b\") -}}
 {{- range . -}}
-    {{- tablerow (printf \"#%v\" .number | color \"green+h\") (timeago .updatedAt | color \"gray+h\") (.author.login | color \"cyan+h\") (printf \"+%v\" .additions | color \"green\") (printf \"-%v\" .deletions | color \"red\") .title -}}
+    {{- tablerow (printf \"#%v\" .number | color \"green+h\") (timeago .updatedAt | color \"gray+h\") (.author.login | color \"cyan+h\") (.headRefName | color \"cyan+h\") (printf \"+%v\" .additions | color \"green\") (printf \"-%v\" .deletions | color \"red\") .title -}}
 {{- end -}}" --search'
 FZF_DEFAULT_COMMAND="$GH_COMMAND ${1:-\"\"}" \
     GH_FORCE_TTY=100% fzf --ansi --disabled --no-multi --header-lines=1 \
