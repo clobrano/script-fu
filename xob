@@ -5,22 +5,33 @@
 # - a keyword
 # - the http link
 
-BOOKMARKS="$HOME/Documents/bookmarks"
+BOOKMARKS="$HOME/Documents/bookmarks.yml"
 
+# If no argument is passed, print the bookmarks
 if [[ -z $1 ]]; then
-    cat ${BOOKMARKS}
+    yq -r '.bookmarks[] | "\(.key) \(.link)"' ${BOOKMARKS} | column -t -s ' ' | sort
     exit 0
 fi
 
-if [[ $(awk '{print $1}' "${BOOKMARKS}" | grep -c $1) -eq 0 ]]; then 
+matches=$(yq -r ".bookmarks[] | select((.key | index(\"${1}\")) != null) .link" ${BOOKMARKS} | wc -l)
+if [[ $matches -eq 0 ]]; then
     echo "[!] No bookmarks with filter: $1"
     exit 1
 fi
-if [[ $(awk '{print $1}' "${BOOKMARKS}" | grep -c $1) -gt 1 ]]; then 
-    echo "[!] Too many ($(grep -c $1 "${BOOKMARKS}")) bookmarks with filter: $1"
-    $(grep $1 "${BOOKMARKS}")
+
+if [[ $matches -gt 1 ]]; then
+    echo "[!] Too many ($matches) bookmarks with filter: $1"
+    matches=$(yq -r ".bookmarks[] | select((.key | index(\"${1}\")) != null) .key" ${BOOKMARKS})
+    for m in ${matches}; do
+        echo $m: $(yq -r ".bookmarks[] | select((.key | index(\"${1}\")) != null) .link" ${BOOKMARKS}) 
+    done
     exit 1
 fi
 
-key=$(awk '{print $1}' "${BOOKMARKS}" | grep $1)
-xdg-open `grep ${key} "${BOOKMARKS}" | awk '{print $2}'` 2>&1>/dev/null
+link=$(yq -r ".bookmarks[] | select((.key | index(\"${1}\")) != null) .link" ${BOOKMARKS})
+if [[ -z link ]]; then
+    echo "[!] No bookmarks with filter: $1"
+    exit 1
+fi
+
+xdg-open ${link} 2>&1>/dev/null
