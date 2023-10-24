@@ -15,8 +15,10 @@
 ##   kk get pod "-o yaml"
 
 action=$1
-resource=$2
-options=$3
+shift
+resource=$1
+shift
+options="$@"
 
 NS_NAME=$(kubectl get ${resource} -A | \
     awk {'printf ("%s\t%s\n", $1, $2)'} | \
@@ -25,9 +27,9 @@ NS=$(echo ${NS_NAME} | awk {'print $1'})
 NAME=$(echo ${NS_NAME} | awk {'print $2'})
 
 if [[ ${action} == "logs" ]]; then
-    cmd="kubectl ${action} ${NAME} -n ${NS} ${options}"
+    cmd="kubectl ${action} ${NAME} -n ${NS} $options"
 else
-    cmd="kubectl ${action} ${resource} ${NAME} -n ${NS} ${options}"
+    cmd="kubectl ${action} ${resource} ${NAME} -n ${NS} $options"
 fi
 
 echo "$cmd"
