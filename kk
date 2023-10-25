@@ -14,6 +14,11 @@
 ##   kk logs pod "-f"
 ##   kk get pod "-o yaml"
 
+if [[ $# -lt 2 ]]; then
+    echo "Usage: kk <action> <resource> [options]"
+    exit 1
+fi
+
 action=$1
 shift
 resource=$1
