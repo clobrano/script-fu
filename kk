@@ -26,8 +26,7 @@ shift
 options="$@"
 
 NS_NAME=$(kubectl get ${resource} -A | \
-    awk {'printf ("%s\t%s\n", $1, $2)'} | \
-    fzf --header "Select ${resource}"  --header-lines=1 --layout reverse)
+    fzf --prompt "Search/Select ${resource}: " --header-lines=1 --layout reverse)
 NS=$(echo ${NS_NAME} | awk {'print $1'})
 NAME=$(echo ${NS_NAME} | awk {'print $2'})
 
