@@ -25,14 +25,14 @@ resource=$1
 shift
 options="$@"
 
-if [[ ${action} == "get" ]] && [[ ${resource} == "event" ]]; then
-    # Let FZF filter over all event's data
-    kubectl get event -A $options | \
-        fzf --prompt "Search ${resource}: " --header-lines=1 --layout=reverse --height=50%
-fi
-
 NS_NAME=$(kubectl get ${resource} -A -o wide | \
-    fzf --prompt "Search/Select ${resource}: " --header-lines=1 --layout=reverse --height=70%)
+    fzf --prompt "Search/Select ${resource}: " \
+    --header="Ctrl-r to reload" \
+    --header-lines=1 \
+    --layout=reverse \
+        --height=70% \
+    --bind "ctrl-r:reload(kubectl get ${resource} -A -o wide)"
+    )
 NS=$(echo ${NS_NAME} | awk {'print $1'})
 NAME=$(echo ${NS_NAME} | awk {'print $2'})
 
