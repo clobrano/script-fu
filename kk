@@ -42,5 +42,6 @@ else
     cmd="kubectl ${action} ${resource} ${NAME} -n ${NS} $options"
 fi
 
+echo "$cmd" | xclip -selection clipboard
 echo "$cmd"
 eval "$cmd"
