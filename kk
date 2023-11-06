@@ -33,13 +33,18 @@ NS_NAME=$(kubectl get ${resource} -A -o wide | \
         --height=70% \
     --bind "ctrl-r:reload(kubectl get ${resource} -A -o wide)"
     )
-NS=$(echo ${NS_NAME} | awk {'print $1'})
-NAME=$(echo ${NS_NAME} | awk {'print $2'})
 
-if [[ ${action} == "logs" ]]; then
-    cmd="kubectl ${action} ${NAME} -n ${NS} $options"
+if [[ ${resource} =~ "node" ]]; then
+    NAME=$(echo ${NS_NAME} | awk {'print $1'})
+    cmd="kubectl ${action} ${resource} ${NAME} $options"
 else
-    cmd="kubectl ${action} ${resource} ${NAME} -n ${NS} $options"
+    NS=$(echo ${NS_NAME} | awk {'print $1'})
+    NAME=$(echo ${NS_NAME} | awk {'print $2'})
+    if [[ ${action} == "logs" ]]; then
+        cmd="kubectl ${action} ${NAME} -n ${NS} $options"
+    else
+        cmd="kubectl ${action} ${resource} ${NAME} -n ${NS} $options"
+    fi
 fi
 
 echo "$cmd" | xclip -selection clipboard
