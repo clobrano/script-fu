@@ -56,6 +56,10 @@ NS_NAME=$(kubectl get ${resource} -A -o wide | \
     --bind "ctrl-r:reload(kubectl get ${resource} -A -o wide)"
     )
 
+if [[ -z ${NS_NAME} ]]; then
+    exit 0
+fi
+
 if [[ ${resource} =~ "node" ]]; then
     NAME=$(echo ${NS_NAME} | awk {'print $1'})
     cmd="kubectl ${action} ${resource} ${NAME} $options"
