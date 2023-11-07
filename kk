@@ -25,6 +25,26 @@ resource=$1
 shift
 options="$@"
 
+
+
+if [[ ${action} == "get" ]] && [[ ${resource} == "event" ]]; then
+    # Let FZF filter over all event's data
+    HEADER=
+    selections=$(kubectl get event -A | \
+        fzf --header=$'Press TAB to select multiple events, then ENTER to show them all together\nPress CTRL-R to reload\n\n' \
+            --prompt "Search ${resource}: " \
+            --preview="echo {}" \
+            --header-lines=1 \
+            --preview-window=up:3:wrap \
+            --layout=reverse \
+                --height=70% \
+            --multi \
+            --bind "ctrl-r:reload(kubectl get ${resource} -A -o wide)"
+        )
+    echo -en "$selections"
+    exit 0
+fi
+
 NS_NAME=$(kubectl get ${resource} -A -o wide | \
     fzf --prompt "Search/Select ${resource}: " \
     --header=$'Press CTRL-R to reload\n\n' \
