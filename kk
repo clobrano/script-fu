@@ -73,6 +73,14 @@ else
     fi
 fi
 
+# Last time to add options
+if [[ -z $options ]]; then
+    echo "About to run: $cmd"
+    read -p "Do you want to append more options: " options
+    echo "Running: $cmd $options"
+    cmd="${cmd} ${options}"
+fi
+
 echo "$cmd" | xclip -selection clipboard
 echo "$cmd"
 eval "$cmd"
