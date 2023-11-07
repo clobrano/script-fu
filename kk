@@ -27,8 +27,10 @@ options="$@"
 
 NS_NAME=$(kubectl get ${resource} -A -o wide | \
     fzf --prompt "Search/Select ${resource}: " \
-    --header="Ctrl-r to reload" \
+    --header=$'Press CTRL-R to reload\n\n' \
     --header-lines=1 \
+    --preview='echo {}' \
+    --preview-window=up:3:wrap \
     --layout=reverse \
         --height=70% \
     --bind "ctrl-r:reload(kubectl get ${resource} -A -o wide)"
