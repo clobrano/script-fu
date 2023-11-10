@@ -25,8 +25,6 @@ resource=$1
 shift
 options="$@"
 
-
-
 if [[ ${action} == "get" ]] && [[ ${resource} == "event" ]]; then
     # Let FZF filter over all event's data
     HEADER=
@@ -35,6 +33,7 @@ if [[ ${action} == "get" ]] && [[ ${resource} == "event" ]]; then
             --prompt "Search ${resource}: " \
             --preview="echo {}" \
             --header-lines=1 \
+            --border \
             --preview-window=up:3:wrap \
             --layout=reverse \
                 --height=70% \
@@ -49,6 +48,7 @@ NS_NAME=$(kubectl get ${resource} -A -o wide | \
     fzf --prompt "Search/Select ${resource}: " \
     --header=$'Press CTRL-R to reload\n\n' \
     --header-lines=1 \
+    --border \
     --preview='echo {}' \
     --preview-window=up:3:wrap \
     --layout=reverse \
