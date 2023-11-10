@@ -74,7 +74,7 @@ else
 fi
 
 # Last time to add options
-if [[ -z $options ]]; then
+if [[ -z ${options} ]]; then
     echo "About to run: $cmd"
     read -p "Do you want to append more options: " options
     echo "Running: $cmd $options"
