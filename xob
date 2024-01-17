@@ -8,9 +8,9 @@
 
 BOOKMARKS="$HOME/Documents/bookmarks.yml"
 
-selection=$(yq -r '.bookmarks[] | "\(.key) \(.link)"' "${BOOKMARKS}" | column -t -s ' ' | sort | fzf --layout reverse --height=70%)
+selection=$(yq 'with(.bookmarks[]; .key = .key + " => " + .link)' "${BOOKMARKS}"| yq '[ .bookmarks[].key]' | column -t -s ' ' | sort | fzf --layout reverse --height=70%)
 if [[ -z ${selection} ]]; then
     exit 0
 fi
-link=$(echo "${selection}" | awk '{print $2}')
+link=$(echo "${selection}" | awk '{print $4}')
 xdg-open ${link} 2>&1>/dev/null
