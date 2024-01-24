@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Bookmarks: quick open files and web links from the command line
+# each line of the bookmark file is expected to be made of two elements:
+# - a keyword named "key"
+# - the http link named "link"
+# e.g.
+# $ cat bookmarks.yml
+# 
+# bookmarks:
+#   - key: github
+#     link: https://github.com
+#   - key: duckduckgo
+#     link: https://duckduckgo.com
+#   - key: notes
+#     link: ~/Documents/notes.md
+# }
+# This script requires the golang implementation of yq https://github.com/mikefarah/yq.
+## usage:
+##    $ bookmarks                   # will open a fzf window with a list of the bookmarks to choose from
+##    $ bookmarks <keyword> <url>   # will add a new entry in the bookmarks file
+
+BOOKMARKS="$HOME/Documents/bookmarks.yml"
+key="$1"
+link="$2"
+
+if [[ $# -eq 2 ]]; then
+    # check entry does not exist already
+    item=$(yq '.bookmarks[] | select( .key == "'"${key}"'" ).link' "${BOOKMARKS}")
+    if [[ -n ${item} ]] && [[ ${item} == ${link} ]]; then
+        echo "Entry already exists"
+        exit 1
+    fi
+
+    yq --inplace ".bookmarks += [{\"key\": \"${key}\", \"link\": \"${link}\"}]" "${BOOKMARKS}"
+    exit 0
+fi
+
+
+selection=$(yq 'with(.bookmarks[]; .key = .key + " => " + .link)' "${BOOKMARKS}"| yq '[ .bookmarks[].key]' | column -t -s ' ' | sort | fzf --layout reverse --height=70%)
+if [[ -z ${selection} ]]; then
+    exit 0
+fi
+link=$(echo "${selection}" | awk '{print $4}')
+xdg-open ${link} 2>&1>/dev/null
