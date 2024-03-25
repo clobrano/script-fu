@@ -57,6 +57,11 @@ res=$(pgrep ${_query:-""} | xargs -I {} sh -c 'tr "\\0" " " < /proc/{}/cmdline; 
     --layout=reverse --info=inline --no-multi \
     --prompt 'Search >' --preview-window hidden:wrap)
 
+if [[ $res == "" ]]; then
+    echo "No process selected"
+    exit 1
+fi
+
 pids=( $(pgrep "${query}") )
 for i in ${!pids[@]}; do
     pid=${pids[$i]}
