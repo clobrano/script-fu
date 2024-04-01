@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+#echo "notify-send \"$@\""
+
+# if not input is given, just show all the jobs in the queue with:
+# - the time at which the job will fire
+# - the job number
+# - the command that will be run
+if [ -z "$1" ]; then
+    function atq_sort() {
+    atq | \
+        awk '{system("echo "$1 "  $(date +\"%Y-%m-%d %H:%M\"  --date \""$2" "$3" "$4" "$5" "$6"\")  "$7"  "$8 )}' | \
+        sort -k2
+    }
+
+    # array of job ids
+    declare -a jobids
+    declare -a timings
+    jobids=($(atq_sort | awk '{print $1}'))
+    dates=($(atq_sort | awk '{print $2}' | date +"%b/%d/%Y" -f -))
+    timings=($(atq_sort | awk '{print $3}'))
+
+    echo "  WHEN              (ID)  MESSAGE"
+
+    tmp=$(mktemp)
+    for i in "${!jobids[@]}"; do
+    message=$(at -c "${jobids[$i]}" | grep -i notify.sh | sed -e 's/.*['\''"]\(.*\).*['\''"]/\1/')
+    echo "- ${dates[$i]} ${timings[$i]} (${jobids[$i]}) ${message}" >> ${tmp}
+    done
+
+    cat ${tmp}
+    exit 0
+fi
+echo "notify.sh --remote --message \"$@\""
+
