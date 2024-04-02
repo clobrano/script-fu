@@ -31,5 +31,6 @@ if [ -z "$1" ]; then
     cat ${tmp}
     exit 0
 fi
-echo "notify.sh --remote --message \"$@\""
+#echo "notify.sh --remote --message \"$@\""
+echo "notify-send \"$@\""
 
