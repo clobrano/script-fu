@@ -7,6 +7,8 @@
 # - the job number
 # - the command that will be run
 if [ -z "$1" ]; then
+    source $HOME/.config/cconf/zsh/functions.zsh
+
     function atq_sort() {
     atq | \
         awk '{system("echo "$1 "  $(date +\"%Y-%m-%d %H:%M\"  --date \""$2" "$3" "$4" "$5" "$6"\")  "$7"  "$8 )}' | \
@@ -17,20 +19,30 @@ if [ -z "$1" ]; then
     declare -a jobids
     declare -a timings
     jobids=($(atq_sort | awk '{print $1}'))
-    dates=($(atq_sort | awk '{print $2}' | date +"%b/%d/%Y" -f -))
+    dates=($(atq_sort | awk '{print $2}' | date +"%Y-%m-%d" -f -))
+    fancy_dates=($(atq_sort | awk '{print $2}' | date +"%b/%d/%Y" -f -))
     timings=($(atq_sort | awk '{print $3}'))
-
-    echo "  WHEN              (ID)  MESSAGE"
+    today=$(date +%Y-%m-%d)
+    tomorrow=$(date +%Y-%m-%d -d '+1 day')
 
     tmp=$(mktemp)
     for i in "${!jobids[@]}"; do
-    message=$(at -c "${jobids[$i]}" | grep -i notify.sh | sed -e 's/.*['\''"]\(.*\).*['\''"]/\1/')
-    echo "- ${dates[$i]} ${timings[$i]} (${jobids[$i]}) ${message}" >> ${tmp}
+        message=$(at -c "${jobids[$i]}" | grep notify | sed -e 's/.*['\''"]\(.*\).*['\''"]/\1/')
+        if [[ ${today} == ${dates[$i]} ]]; then
+            time_left=$(time_left_in_seconds ${timings[$i]})
+            time_left=$(humanizetime ${time_left})
+            time_left=$(echo $time_left | cut -d"." -f1)
+        else
+            # using tomorrow since the difference will count 1 day more otherwise
+            diff=$(echo "`date +%s -d ${dates[$i]}` - `date +%s -d ${tomorrow}`"|bc)
+            time_left=$(date +%d -d @${diff})d
+        fi
+        echo "- ${fancy_dates[$i]} ${timings[$i]}/${time_left} (${jobids[$i]}) ${message}" >> ${tmp}
     done
 
     cat ${tmp}
     exit 0
 fi
-#echo "notify.sh --remote --message \"$@\""
+
 echo "notify-send \"$@\""
 
