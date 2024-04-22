@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-echo "90 min cycles"
-b1=`date +%H:%M`
-b2=`date --date "+90 min" +%H:%M`
-b3=`date --date "+180 min" +%H:%M`
-b4=`date --date "+270 min" +%H:%M`
-b5=`date --date "+360 min" +%H:%M`
-b5=`date --date "+450 min" +%H:%M`
-b6=`date --date "+540 min" +%H:%M`
 
-echo "1st) $b1 - $b2"
-echo "2st) $b2 - $b3"
-echo "3st) $b3 - $b4"
-echo "4st) $b4 - $b5"
-echo "5st) $b5 - $b6"
+set -e
+ref=$1
+CYCLES=5
+LENGTH=5400 #90 min
+if [[ -z $ref ]]; then
+    ref_sec=$(date +%s)
+else
+    ref_sec=$(date --date $ref +%s)
+fi
+
+from=$(date --date @$ref_sec +%H:%M)
+for i in $(seq 1 $CYCLES ); do
+    to=$(date --date @"`echo $ref_sec + $LENGTH \* $i|bc`" +%H:%M)
+    echo "$i) $from - $to"
+    from=$to
+done
