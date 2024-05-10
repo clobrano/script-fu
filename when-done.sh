@@ -73,5 +73,8 @@ for i in ${!pids[@]}; do
     fi
 done
 
-[[ -n ${_local} ]] && notify-send -i "info" "Process ${_query} done"
+if [[ -n ${_local} ]]; then
+    notify-send -i "info" "Process ${_query} done"
+    paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+fi
 [[ -n ${_remote} ]] && ntfy-send.sh "Process ${_query} done"
