@@ -101,7 +101,11 @@ else
     fi
 
     # Get the resource's info first
-    RESOURCE_INFO=$(kubectl get ${kind} ${NN} ${SELECTOR} -o wide | \
+    # We will parse the header of the response to see where are the columns NAME and NAMESPACE (note
+    # that NAMESPACE might not exist and the script will handle it)
+    tmp_file="/tmp/kk_tempfile_$$"
+    kubectl get ${kind} ${NN} ${SELECTOR} -o wide > ${tmp_file}
+    RESOURCE_INFO=$(cat ${tmp_file} | \
         fzf --prompt "Search and Select ${kind} under ${_namespace} Namespace and ${_selector} selector: " \
         --header=$'Press CTRL-R to reload\n\n' \
         --header-lines=1 \
@@ -112,20 +116,28 @@ else
             --height=70% \
         --bind "ctrl-r:reload(kubectl get ${kind} ${NN} ${SELECTOR} -o wide)"
         )
+    header=$(cat ${tmp_file} | head -n 1)
+    rm ${tmp_file}
 
     if [[ -z ${RESOURCE_INFO} ]]; then
         exit 0
     fi
 
-    # Get NAME from resources that do not have namespace
-    if [[ ${kind} =~ "node" ]] || [[ ${kind} == "crd"  ]] || [[ ${kind} =~ "clusterrole"  ]]; then
-        NAME=$(echo ${RESOURCE_INFO} | awk {'print $1'})
-    else
-        # Get NAME and NS from the others
-        NS=$(echo ${RESOURCE_INFO} | awk {'print $1'})
-        NAME=$(echo ${RESOURCE_INFO} | awk {'print $2'})
-    fi
+    name_col=$(echo "$header" | tr -s ' ' '\n' | grep -n '^NAME$' | cut -d: -f1)
+    namespace_col=$(echo "$header" | tr -s ' ' '\n' | grep -n '^NAMESPACE$' | cut -d: -f1)
 
+    # Get NAME and NS
+    NAME=$(echo ${RESOURCE_INFO} | awk -v name_col="$name_col" {'print $name_col'})
+    if [[ -z ${NAME} ]]; then
+        echo "[!] could not find ${kind} object name"
+        exit 1
+    fi
+    if [[ ${_namespace} != "--all-namespaces" ]]; then
+        NS=${_namespace}
+    else if [[ -n ${namespace_col} ]]; then
+            NS=$(echo ${RESOURCE_INFO} | awk -v namespace_col="$namespace_col" {'print $namespace_col'})
+        fi
+    fi
 
     # Select the action via FZF (get, logs, describe, explain, edit, delete)
     action=$(echo -e "get\nlogs\ndescribe\nexplain\nedit\ndelete" | \
