@@ -139,11 +139,21 @@ else
         fi
     fi
 
-    # Select the action via FZF (get, logs, describe, explain, edit, delete)
-    action=$(echo -e "get\nlogs\ndescribe\nexplain\nedit\ndelete" | \
+    # supported kubectl actions (do not change indentation)
+    supported_actions="
+delete          Delete resources by file names, stdin, resources and names, or by resources and label selector
+describe        Show details of a specific resource or group of resources
+edit            Edit a resource on the server
+explain         Get documentation for a resource
+get             Display one or many resources
+logs            Print the logs for a container in a pod
+"
+
+    # Select the action via FZF
+    action=$(echo "${supported_actions}" | \
         fzf --prompt "Select the action: " \
             --layout=reverse --height=70% \
-            --border)
+            --border | awk '{ print $1 }')
 
     if [[ ${action} == "logs" ]]; then
             cmd="kubectl logs ${NAME} -n ${NS}"
