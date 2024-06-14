@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+
+
+default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | awk -F '/' '{print $NF}')
+if [[ -z ${default_branch} ]]; then
+    echo "[!] no default branch set"
+    exit 1
+fi
+echo "[+] pull ${default_branch} from $(git remote -v | grep upstream | grep push)"
+git pull upstream ${default_branch}
+
+echo ""
+echo "[+] push ${default_branch} to $(git remote -v | grep origin | grep push)?"
+read
+git push origin ${default_branch}

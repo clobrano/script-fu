@@ -12,13 +12,12 @@ GH_COMMAND='gh pr list --state open --json number,author,headRefName,additions,d
 {{- end -}}" --search'
 FZF_DEFAULT_COMMAND="$GH_COMMAND ${1:-\"\"}" \
     GH_FORCE_TTY=100% fzf --ansi --disabled --no-multi --header-lines=1 \
-    --header $'CTRL+B - Browser | CTRL+D - Toggle Diff  | CTRL+X - Checkout\nCTRL+E - Edit    | CTRL+I - Toggle Info  | CTRL+Y - Comment' \
+    --header $'CTRL+W - Browser | CTRL+D - Toggle Diff  | CTRL+Y - Comment\nCTRL+I - Toggle Info  | Enter - Checkout' \
     --prompt 'Search Open PRs >' --preview-window hidden:wrap \
     --layout=reverse --info=inline --no-multi \
     --bind "change:reload:sleep 0.25; $GH_COMMAND {q} || true" \
-    --bind 'ctrl-b:execute-silent(gh pr view {1} --web)' \
+    --bind 'ctrl-w:execute-silent(gh pr view {1} --web)' \
     --bind 'ctrl-d:toggle-preview+change-preview(gh pr diff {1} --color always)' \
     --bind 'ctrl-i:toggle-preview+change-preview(gh pr view {1} --comments)' \
-    --bind 'ctrl-e:accept+execute(gh pr edit {1})' \
-    --bind 'ctrl-x:accept+execute(gh pr checkout {1})' \
-    --bind 'ctrl-y:accept+execute(gh pr comment {1})'
+    --bind 'ctrl-y:accept+execute(gh pr comment {1})' \
+    --bind 'enter:accept+execute(gh pr checkout {1})'

@@ -53,21 +53,9 @@ done
 # CLInt GENERATED_CODE: end
 
 # FUNCTIONS
-check_config_is_simlink() {
-if [[ ! -L ~/.kube/config ]]; then
-    echo "[!] ~/.kube/config is NOT a symlink now! Creating a symlink will break current config"
-    echo -n "    \e4[press ENTER\e[0m"
-    echo " to back it up with another name, CTRL-C otherwise"
-    read
-    echo "[+] enter the backup file name (it will be stored inside ~/.kube folder)"
-    read config_bk_name
-    mv ~/.kube/config ~/.kube/$config_bk_name
-fi
-}
+
 show_current() {
-    if [[ -e ~/.kube/config ]]; then
-        echo "Currently using `readlink ~/.kube/config`"
-    fi
+    echo "Currently using $(jq -r '.config' $KUBE_MAP)"
 }
 
 count_configs() {
@@ -91,31 +79,39 @@ set_kube_map() {
     tmp=$(mktemp)
     # jq does not edit file in-place
     jq --arg a "${hostname}" '.current = $a' $KUBE_MAP > $tmp && mv $tmp $KUBE_MAP
+    jq --arg a "${config}" '.config = $a' $KUBE_MAP > $tmp && mv $tmp $KUBE_MAP
 }
 
 
 # MAIN
 trap "echo [+] script interrupted, nothing to do; exit" SIGINT 
-check_config_is_simlink
+#check_config_is_simlink
 
 if [[ -n $_delete ]]; then
-    ACTION="DELETE"
+    # Multiple selection in case of deletion
+    PROMPT+="Select kubeconfig files to DELETE: "
+    selections=$(ls ~/.kube | grep -vE "^config$|dsal-host" | grep -v cache | \
+        fzf --layout=reverse --height=40% --border --header="$(show_current)" --prompt="$PROMPT" --multi)
+    if [[ -z $selections ]]; then
+        echo "[+] nothing selected, exiting"
+        exit 0
+    fi
+    echo "[+] deleting the following selection"
+    for selection in $selections; do
+        echo "  - ~/.kube/${selection}"
+    done
+    read -p "[+] Press ENTER to continue, CTRL-C to abort"
+    for selection in $selections; do
+        rm ~/.kube/${selection}
+    done
 else
-    ACTION="USE"
-fi
-PROMPT+="Select kubeconfig file to $ACTION: "
-
-selection=$(ls ~/.kube | grep -vE "^config$|dsal-host" | grep -v cache | \
-    fzf --layout=reverse --header="$(show_current)" --prompt="$PROMPT")
-if [[ -z $selection ]]; then
-    echo "[+] nothing selected, exiting"
-    exit 0
-fi
-
-if [[ -n $_delete ]]; then
-    read -p "[+] deleting $selection [Press ENTER to continue, CTRL-C to abort]"
-    rm ~/.kube/${selection}
-else
-    set -x
-    ln -sf ~/.kube/${selection} ~/.kube/config || echo "[!] something went wrong"
+    PROMPT+="Select kubeconfig file to USE: "
+    selection=$(ls ~/.kube | grep -vE "^config$|dsal-host" | grep -v cache | \
+        fzf --layout=reverse --height=70% --border --header="$(show_current)" --prompt="$PROMPT")
+    if [[ -z $selection ]]; then
+        echo "[+] nothing selected, exiting"
+        exit 0
+    fi
+    cp -f ~/.kube/"${selection}" ~/.kube/config || echo "[!] something went wrong"
+    set_kube_map "$selection"
 fi

@@ -3,7 +3,7 @@
 
 set -e
 ref=$1
-CYCLES=5
+CYCLES=6
 LENGTH=5400 #90 min
 if [[ -z $ref ]]; then
     ref_sec=$(date +%s)

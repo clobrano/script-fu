@@ -67,14 +67,23 @@ for i in ${!pids[@]}; do
     pid=${pids[$i]}
     cmd=$(cat /proc/${pid}/cmdline | sed -e "s/\x00/ /g"; echo)
     if [[ ${cmd} == ${res} ]]; then
+        PIDFILE=/tmp/when-done-"${cmd}"-$(date +%Y%m%d-%H:%M:%s).pid
+        $(tail --pid=${pid} --follow /dev/null && \
+            notify-send -i "info" "Process ${cmd} done" && \
+            paplay /usr/share/sounds/freedesktop/stereo/complete.oga && \
+            rm "$PIDFILE") &
+        TAIL_PID=$!
+        echo "$TAIL_PID" > "$PIDFILE"
         echo -e "Let's wait for ${pid}: \e[4m${cmd}\e[0m to end"
-        tail --pid=${pid} --follow /dev/null
         break
     fi
 done
 
-if [[ -n ${_local} ]]; then
-    notify-send -i "info" "Process ${_query} done"
-    paplay /usr/share/sounds/freedesktop/stereo/complete.oga
-fi
-[[ -n ${_remote} ]] && ntfy-send.sh "Process ${_query} done"
+
+sendNotification() {
+    if [[ -n ${_local} ]]; then
+        notify-send -i "info" "Process ${_query} done"
+        paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+    fi
+    [[ -n ${_remote} ]] && ntfy-send.sh "Process ${_query} done"
+}

@@ -41,4 +41,4 @@ if [[ -z ${selection} ]]; then
     exit 0
 fi
 link=$(echo "${selection}" | awk '{print $4}')
-xdg-open ${link} 2>&1>/dev/null
+xdg-open ${link} 2>&1 > /dev/null

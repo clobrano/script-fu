@@ -17,10 +17,10 @@
 # environment variables
 _work_session_time=${REDTIMER_WORK_SESSION_TIME:-35}
 _pause_session_time=${REDTIMER_PAUSE_SESSION_TIME:-10}
-_log_session_path=${REDTIMER_LOG_SESSION_PATH:-~/MyBox/Work/sideproject/redtimer-session-log.txt}
+_log_session_path=~/.redtimer-session-log.txt
 
 # deps
-at_ok=$(which at | wc -l)
+at_ok=$(which at 2>/dev/null | wc -l)
 if [ $at_ok != 1 ]; then
     echo "at is missing"
     exit 1

@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 ## Helper script to get the latest version of a module listed in go.mod
-set -eu
-if [[ $# -eq 0 ]]; then
-    set -x
-    go list -mod=mod -u -m all
-    set +x
-else
-    for module in ${@}; do
-        module=$(grep $module go.mod | xargs | cut -d" " -f1)
-        go list -mod=mod -u -m $module
-    done
-fi
+
+# feed FZF with the list of required modules from go.mod
+PROMPT+="Press TAB to select any depedencies you want to update to the latest version"
+selection=$(awk '/require \(/,/\)/{if (!/require \(/ && !/\)/) print}' go.mod | \
+    fzf --layout reverse --height 70% --border --multi --prompt "$PROMPT")
+
+for module in ${selection}; do
+    # some selection is actually the module's version in format vx.y.z. Skipping those
+    if [[ $module =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        continue
+    fi
+    cmd="go get -u ${module}"
+    echo ${cmd}
+    ${cmd}
+done

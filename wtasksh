@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export TASKRC=$HOME/.taskworkrc
+export TASKDATA=$HOME/Documents/taskwarriorRH
+tasksh

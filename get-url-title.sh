@@ -8,4 +8,8 @@ else
     url=$1
 fi
 
+if [[ $url == "" ]]; then
+    echo "[!] could not get url"
+fi
+
 wget -qO- "$url" | perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' | recode html..ascii 2>/dev/null
