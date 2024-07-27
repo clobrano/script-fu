@@ -35,8 +35,20 @@ if [[ $# -eq 2 ]]; then
     exit 0
 fi
 
+if [[ $# -eq 1 ]]; then
+    QUERY="--query=$@"
+fi
 
-selection=$(yq 'with(.bookmarks[]; .key = .key + " => " + .link)' "${BOOKMARKS}"| yq '[ .bookmarks[].key]' | column -t -s ' ' | sort | fzf --layout reverse --height=70%)
+
+selection=$(\
+    yq 'with(.bookmarks[]; .key = .key + " => " + .link)' "${BOOKMARKS}" \
+    | yq '[ .bookmarks[].key]' \
+    | column -t -s ' ' \
+    | sort \
+    | fzf \
+        --layout reverse --height=70% $QUERY\
+        --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | xclip -selection clipboard)+abort'\
+)
 if [[ -z ${selection} ]]; then
     exit 0
 fi
