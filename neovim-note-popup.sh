@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 set -eu
 
-noteFilename="$HOME/Dropbox/notes/Journal/$(date +%Y-%m-%d.md)"
+noteDirectory="$HOME/Dropbox/notes"
+noteFilename="${noteDirectory}/Journal/$(date +%Y-%m-%d.md)"
 
 if [[ ! -f "$noteFilename" ]]; then
     # this is shared with Obsidian, so I need to use the same template.
@@ -14,7 +15,7 @@ if [[ ! -f "$noteFilename" ]]; then
     cat "$HOME/Dropbox/notes/Resources/templates/notes-day.md" > "$noteFilename"
 fi
 
-set -x
+cd ${noteDirectory}
 nvim \
     -c "norm Go" \
     -c "norm Go$(date +%H:%M)" \
