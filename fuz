@@ -72,5 +72,5 @@ select_file() {
 
 previousdirectory=`pwd`
 cd "$_directory"
-main ""
+main "$@"
 cd "$previousdirectory"
