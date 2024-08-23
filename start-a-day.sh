@@ -2,6 +2,9 @@
 # -*- coding: UTF-8 -*-
 ## Fun script to remind you to call it a day after the required hours of work
 
+: ${TASK:="task"}
+TASK="${TASK} rc.color=off"
+
 # Set the required hours of work (included 1h for lunch) from input or default to 9
 required_hours=${1:-9}
 TODAY_REM=~/.config/rem/rem.$(date +%F)
@@ -16,15 +19,19 @@ if [[ ! -f ${TODAY_REM} ]]; then
     lets do morning review
 fi
 
-echo "## OVERDUE/TODAY"
-task rc:~/.taskworkrc +OVERDUE +TODAY
+echo "## Quarter Goals"
+${TASK} project:QC +PENDING
+
+
+echo "## NEXT (overdue/today/High)"
+${TASK} "(+OVERDUE +TODAY) or priority:H"
 
 echo ""
 echo "## THIS WEEK"
-task rc:~/.taskworkrc +PENDING due.after:sow due.before:eow
+${TASK} +PENDING due.after:sow due.before:eow
 
 
 echo ""
 echo "## ACTIVE"
-task rc:~/.taskworkrc +ACTIVE
+${TASK} +ACTIVE
 

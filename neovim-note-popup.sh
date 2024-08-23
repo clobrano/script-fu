@@ -6,13 +6,25 @@ noteDirectory="$HOME/Dropbox/notes"
 noteFilename="${noteDirectory}/Journal/$(date +%Y-%m-%d.md)"
 
 if [[ ! -f "$noteFilename" ]]; then
-    # this is shared with Obsidian, so I need to use the same template.
-    TEMPLATE="$HOME/Dropbox/notes/Resources/templates/notes-day.md"
-    if [[ ! -f "$TEMPLATE" ]]; then
-        echo "[!] can't find template: $TEMPLATE"
-        exit 1
-    fi
-    cat "$HOME/Dropbox/notes/Resources/templates/notes-day.md" > "$noteFilename"
+    # 2024-08-21: Obsidian template uses some Templater specific things that
+    # don't make sense here. Replicating them here
+    # Template will be
+    # mood::
+    # summary::
+    #
+    # Last:
+    # . week: [[7 days ago link]]
+    # . month: [[1 month ago link]]
+    # . year: [[1 year ago link]]
+    cat << EOF > "$noteFilename"
+    mood::
+    summary::
+    
+    Last:
+    . week: [[`date -d "last week" +%Y-%m-%d`]]
+    . month: [[`date -d "last month" +%Y-%m-%d`]]
+    . year: [[`date -d "last year" +%Y-%m-%d`]]
+EOF
 fi
 
 cd ${noteDirectory}
