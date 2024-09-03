@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 
-ORGFIELPATH=~/Me/Orgmode/Orgmode.org
+ORG_FILEPATH=~/Me/Orgmode/Orgmode.org
 command -v notify-send >/dev/null
 if [ $? -eq 0 ]; then
-    NOTIFY="notify-send"
+    NOTIFY="notify-send --app-name ReadItLater -i dialog-information"
 else
     NOTIFY="echo"
 fi
@@ -36,7 +36,7 @@ process_youtube() {
     title=$(echo "$info" | sed -n '1p')
     duration=$(echo "$info" | sed -n '2p')
 
-    grep "$url" ${ORGFIELPATH} >/dev/null
+    grep "$url" ${ORG_FILEPATH} >/dev/null
     if [ $? -eq 0 ]; then
         $NOTIFY "$title already in ReadItLater"
         return 0
@@ -54,27 +54,27 @@ process_youtube() {
         duration_tag="long"
     fi
 
-    echo -e "* $title :video:$duration_tag:\n  $url\n  duration: $duration" >> ${ORGFIELPATH}
+    echo -e "* $title :video:$duration_tag:\n  $url\n  duration: $duration" >> ${ORG_FILEPATH}
     $NOTIFY "$title saved in ReadItLater"
 }
 
 # Function to process a web page URL and categorize it
 process_webpage() {
     url=$1
-    content=$(curl -sL "$url" | html2text)
-    title=$(echo "$content" | head -n 1)
 
-    grep "$url" ${ORGFIELPATH} >/dev/null
+    title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
+    grep "$url" ${ORG_FILEPATH} >/dev/null
     if [ $? -eq 0 ]; then
-        $NOTIFY "$title already in ReadItLater"
+        $NOTIFY "Skip $title, as it is already in ReadItLater"
         return 0
     fi
 
+    content=$(curl -sL "$url" | html2text)
     reading_info=$(calculate_reading_time "$content")
     reading_time=$(echo "$reading_info" | awk '{print $1}')
     duration_tag=$(echo "$reading_info" | awk '{print $2}')
 
-    echo -e "* $title :reading:$duration_tag:\n  $url\n  duration: ${reading_time}" >> ${ORGFIELPATH}
+    echo -e "* $title :reading:$duration_tag:\n  $url\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
     $NOTIFY "$title saved in ReadItLater"
 }
 
@@ -83,6 +83,10 @@ if [[ $# -eq 0 ]]; then
     url=`wl-paste`
 else
     url=$1
+fi
+
+if [[ ! $url =~ "http"  ]]; then
+    exit 0
 fi
 
 # Check if the URL is a YouTube link
