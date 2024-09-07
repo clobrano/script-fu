@@ -2,12 +2,32 @@
 # -*- coding: UTF-8 -*-
 
 ORG_FILEPATH=~/Me/Orgmode/Orgmode.org
+ORG_ARCHIVE_FILEPATH=~/Me/Orgmode/Orgmode.org_archive
+
 command -v notify-send >/dev/null
 if [ $? -eq 0 ]; then
     NOTIFY="notify-send --app-name ReadItLater -i dialog-information"
+    WARNING="notify-send --app-name ReadItLater -i dialog-warning"
 else
     NOTIFY="echo"
+    WARNING="echo [!]"
 fi
+
+
+check_duplicate() {
+    local url=$1
+    grep "$url" ${ORG_FILEPATH} >/dev/null
+    if [ $? -eq 0 ]; then
+        $WARNING "$title: already in ReadItLater"
+        return 1
+    fi
+    grep "$url" ${ORG_ARCHIVE_FILEPATH} >/dev/null
+    if [ $? -eq 0 ]; then
+        $WARNING "$title: already in ReadItLater Archive"
+        return 1
+    fi
+    return 0
+}
 
 
 # Function to estimate reading time and categorize it
@@ -36,9 +56,8 @@ process_youtube() {
     title=$(echo "$info" | sed -n '1p')
     duration=$(echo "$info" | sed -n '2p')
 
-    grep "$url" ${ORG_FILEPATH} >/dev/null
-    if [ $? -eq 0 ]; then
-        $NOTIFY "$title already in ReadItLater"
+    check_duplicate "$url"
+    if [ $? -eq 1 ]; then
         return 0
     fi
 
@@ -55,7 +74,7 @@ process_youtube() {
     fi
 
     echo -e "* $title :video:$duration_tag:\n  $url\n  duration: $duration" >> ${ORG_FILEPATH}
-    $NOTIFY "$title saved in ReadItLater"
+    $NOTIFY "$title saved"
 }
 
 # Function to process a web page URL and categorize it
@@ -75,7 +94,7 @@ process_webpage() {
     duration_tag=$(echo "$reading_info" | awk '{print $2}')
 
     echo -e "* $title :reading:$duration_tag:\n  $url\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
-    $NOTIFY "$title saved in ReadItLater"
+    $NOTIFY "$title saved"
 }
 
 # Main script logic
