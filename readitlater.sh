@@ -75,7 +75,9 @@ process_youtube() {
         duration_tag="long"
     fi
 
-    echo -e "* $title :video:$duration_tag:\n  $url\n  duration: $duration" >> ${ORG_FILEPATH}
+    creation_date=`date +%F`
+
+    echo -e "* $title :video:$duration_tag:\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
     $NOTIFY "$title saved"
 }
 
@@ -94,8 +96,9 @@ process_webpage() {
     reading_info=$(calculate_reading_time "$content")
     reading_time=$(echo "$reading_info" | awk '{print $1}')
     duration_tag=$(echo "$reading_info" | awk '{print $2}')
+    creation_date=`date +%F`
 
-    echo -e "* $title :reading:$duration_tag:\n  $url\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
+    echo -e "* $title :reading:$duration_tag:\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
     $NOTIFY "$title saved"
 }
 
