@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 
-ORG_FILEPATH=~/Me/Orgmode/Orgmode.org
-ORG_ARCHIVE_FILEPATH=~/Me/Orgmode/Orgmode.org_archive
+ORG_FILEPATH=~/Me/Orgmode/ReadItLater.org
+ORG_ARCHIVE_FILEPATH=("~/Me/Orgmode/ReadItLater_archive.org" "~/Me/Orgmode/Orgmode.org_archive")
 
 command -v notify-send >/dev/null
 if [ $? -eq 0 ]; then
@@ -21,11 +21,13 @@ check_duplicate() {
         $WARNING "$title: already in ReadItLater"
         return 1
     fi
-    grep "$url" ${ORG_ARCHIVE_FILEPATH} >/dev/null
-    if [ $? -eq 0 ]; then
-        $WARNING "$title: already in ReadItLater Archive"
-        return 1
-    fi
+    for archive in ${ORG_ARCHIVE_FILEPATH[@]}; do
+        grep "$url" $archive >/dev/null
+        if [ $? -eq 0 ]; then
+            $WARNING "$title: already in ReadItLater Archive"
+            return 1
+        fi
+    done
     return 0
 }
 
