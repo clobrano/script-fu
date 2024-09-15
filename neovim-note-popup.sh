@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 set -eu
 
-noteDirectory="$HOME/Dropbox/notes"
+noteDirectory="$ME/Notes"
 noteFilename="${noteDirectory}/Journal/$(date +%Y-%m-%d.md)"
 
 if [[ ! -f "$noteFilename" ]]; then
@@ -19,7 +19,7 @@ if [[ ! -f "$noteFilename" ]]; then
     cat << EOF > "$noteFilename"
     mood::
     summary::
-    
+
     Last:
     . week: [[`date -d "last week" +%Y-%m-%d`]]
     . month: [[`date -d "last month" +%Y-%m-%d`]]
