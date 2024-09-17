@@ -14,6 +14,23 @@ else
 fi
 
 
+get_tags() {
+    command -v kdialog >/dev/null
+    if [[ $? -eq 0 ]]; then
+        TAG=`kdialog --title ReadItLater --inputbox "Tags (separated by \":\")"`
+        echo "$TAG:"
+        return 0
+    fi
+    command -v termux-setup-storage
+    if [[ $? -eq 0 ]]; then
+        TAG=`termux-dialog text --title "ReadItLater" --hint "Tags separated by \":\""`
+        echo "$TAG:"
+        return 0
+    fi
+    echo ""
+}
+
+
 check_duplicate() {
     local url=$1
     grep "$url" ${ORG_FILEPATH} >/dev/null
@@ -77,7 +94,9 @@ process_youtube() {
 
     creation_date=`date +%F`
 
-    echo -e "* $title :video:$duration_tag:\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
+    more_tags=`get_tags`
+
+    echo -e "* $title :video:$duration_tag:$more_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
     $NOTIFY "$title saved"
 }
 
@@ -98,7 +117,9 @@ process_webpage() {
     duration_tag=$(echo "$reading_info" | awk '{print $2}')
     creation_date=`date +%F`
 
-    echo -e "* $title :reading:$duration_tag:\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
+    more_tags=`get_tags`
+
+    echo -e "* $title :reading:$duration_tag:$more_tags\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
     $NOTIFY "$title saved"
 }
 
