@@ -24,7 +24,11 @@ get_tags() {
     command -v termux-setup-storage
     if [[ $? -eq 0 ]]; then
         TAG=`termux-dialog text --title "ReadItLater" --hint "Tags separated by \":\""`
-        echo "$TAG:"
+        if [[ -z $TAG ]]; then
+            echo ""
+        else
+            echo "$TAG:"
+        fi
         return 0
     fi
     echo ""
