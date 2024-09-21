@@ -67,14 +67,25 @@ for i in ${!pids[@]}; do
     pid=${pids[$i]}
     cmd=$(cat /proc/${pid}/cmdline | sed -e "s/\x00/ /g"; echo)
     if [[ ${cmd} == ${res} ]]; then
-        PIDFILE=/tmp/when-done-"${cmd}"-$(date +%Y%m%d-%H:%M:%s).pid
-        $(tail --pid=${pid} --follow /dev/null && \
-            notify-send -i "info" "Process ${cmd} done" && \
-            paplay /usr/share/sounds/freedesktop/stereo/complete.oga && \
-            rm "$PIDFILE") &
+        PIDFILE=/tmp/when-done-$(date +%Y%m%d-%H:%M:%s).yaml
+        if [[ $_local -eq 1 ]]; then
+            $(tail --pid=${pid} --follow /dev/null && \
+                notify-send -i "info" "[when-done] finished" && \
+                paplay /usr/share/sounds/freedesktop/stereo/complete.oga && \
+                [[ -f "$PIDFILE" ]] && rm "$PIDFILE") &
+        fi
+        if [[ $_remote -eq 1 ]]; then
+            $(tail --pid=${pid} --follow /dev/null && \
+                curl -d "[when-done] finished" ntfy.sh/${NTFY_HANDLE} && \
+                paplay /usr/share/sounds/freedesktop/stereo/complete.oga && \
+                [[ -f "$PIDFILE" ]] && rm "$PIDFILE") &
+        fi
         TAIL_PID=$!
-        echo "$TAIL_PID" > "$PIDFILE"
-        echo -e "Let's wait for ${pid}: \e[4m${cmd}\e[0m to end"
+        cat << EOF > "$PIDFILE"
+        cmd: $cmd
+        pid: $TAIL_PID
+EOF
+        echo -e "Let's wait for ${pid}: \e[4m${cmd}\e[0m to end (PIDFILE=$PIDFILE)"
         break
     fi
 done
