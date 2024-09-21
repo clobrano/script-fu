@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+## BookMarkIt
+## options
+## add [url] [key]   Add a new URL to bookmarks with a given key. The "key" will be requested if not
+##                   provided, the URL instead will be taken from the clipboard if not provided.
+## find [query]      Find a URL from the bookmarks. You can provide an initial query string to limit
+##                   the search
+
+BOOKMARKS="$HOME/Documents/bookmarks.yml"
+
+action=$1
+shift
+
+command -v notify-send >/dev/null
+if [ $? -eq 0 ]; then
+    NOTIFY="notify-send --app-name BookMarkIt -i dialog-information"
+    WARNING="notify-send --app-name BookMarkIt -i dialog-warning"
+else
+    NOTIFY="echo"
+    WARNING="echo [!]"
+fi
+
+add_new_bookmark() {
+    local url=$1
+    local key=$2
+
+    if [[ -z $url ]]; then
+        url=`wl-paste`
+    fi
+
+    if [[ ! $url =~ "http"  ]]; then
+        return 1
+    fi
+
+    exists_already=$(yq '.bookmarks[].link' "${BOOKMARKS}" | grep "$url" -c)
+    if [[ $exists_already -gt 0 ]]; then
+        $NOTIFY "This URL was already bookmarked"
+        return 1
+    fi
+
+    if [[ -z $key ]]; then
+        key=`kdialog --title BookMarkIt --inputbox "Give a name to the URL"`
+    fi
+    title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
+    yq --inplace ".bookmarks += [{\"key\": \"${key}\", \"link\": \"${url}\"}]" "${BOOKMARKS}"
+    return 0
+}
+
+find_bookmark() {
+    QUERY="--query=$@"
+    selection=$(\
+        yq 'with(.bookmarks[]; .key = .key + " => " + .link)' "${BOOKMARKS}" \
+        | yq '[ .bookmarks[].key]' \
+        | column -t -s ' ' \
+        | sort \
+        | fzf \
+            --layout reverse --height=70% $QUERY\
+            --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | xclip -selection clipboard)+abort'\
+    )
+    if [[ -z ${selection} ]]; then
+        exit 0
+    fi
+    link=$(echo "${selection}" | awk '{print $4}')
+    xdg-open ${link} 2>&1 > /dev/null
+}
+
+if [[ $action == "add" ]]; then
+    add_new_bookmark
+    exit $?
+fi
+
+if [ $action == "find" ]; then
+    find_bookmark
+    exit $?
+fi
+
+echo "[!] unsupported action \"$action\""
+exit 1
+
+
