@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+: ${TASK:="task"}
+FILTER=$@
+
+# note the negate "!"
+is_termux=$(! command -v termux-setup-storage >/dev/null)
+
+LIST=list
+[[ $is_termux -eq 1 ]] && LIST=list_short
+
+set -x
+$TASK $FILTER $LIST
