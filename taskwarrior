@@ -4,10 +4,11 @@
 FILTER=$@
 
 # note the negate "!"
-is_termux=$(! command -v termux-setup-storage >/dev/null)
+! command -v termux-setup-storage >/dev/null
+is_termux=$?
 
 LIST=list
-[[ $is_termux -eq 1 ]] && LIST=list_short
+[[ $is_termux -eq 0 ]] && LIST=list_short
 
 set -x
 $TASK $FILTER $LIST
