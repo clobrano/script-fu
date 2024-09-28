@@ -80,7 +80,7 @@ process_youtube() {
         return 0
     fi
 
-    more_tags=`get_tags`
+    custom_tags=`get_tags`
 
     if [[ "$url" =~ "playlist" ]]; then
         title=$(yt-dlp --skip-download --print playlist_title "$url" | uniq)
@@ -111,9 +111,11 @@ process_youtube() {
 
     creation_date=`date +%F`
 
+    all_tags=":video:$duration_tag:$custom_tags"
 
-    echo -e "* $title :video:$duration_tag:$more_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
-    $NOTIFY "$title saved"
+    echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
+
+    $NOTIFY "$title ($all_tags) saved"
 }
 
 # Function to process a web page URL and categorize it
@@ -125,6 +127,8 @@ process_webpage() {
         return 0
     fi
 
+    custom_tags=`get_tags`
+
     title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
     content=$(curl -sL "$url" | html2text)
     reading_info=$(calculate_reading_time "$content")
@@ -132,10 +136,11 @@ process_webpage() {
     duration_tag=$(echo "$reading_info" | awk '{print $2}')
     creation_date=`date +%F`
 
-    more_tags=`get_tags`
 
-    echo -e "* $title :reading:$duration_tag:$more_tags\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
-    $NOTIFY "$title saved"
+    all_tags=":reading:$duration_tag:$custom_tags"
+
+    echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
+    $NOTIFY "$title ($all_tags) saved"
 }
 
 # Main script logic
