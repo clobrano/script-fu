@@ -17,17 +17,15 @@ if [[ ! -f "$noteFilename" ]]; then
     # . month: [[1 month ago link]]
     # . year: [[1 year ago link]]
     cat << EOF > "$noteFilename"
-    
+Last:
+. week: [[`date -d "last week" +%Y-%m-%d`]]
+. month: [[`date -d "last month" +%Y-%m-%d`]]
+. year: [[`date -d "last year" +%Y-%m-%d`]]
 
-    Last:
-    . week: [[`date -d "last week" +%Y-%m-%d`]]
-    . month: [[`date -d "last month" +%Y-%m-%d`]]
-    . year: [[`date -d "last year" +%Y-%m-%d`]]
+mood::
+summary::
 
-    mood::
-    summary::
-
-    ## `LC_TIME=C date +"%d %a"`
+## `LC_TIME=C date +"%d %a"`
 EOF
 fi
 
