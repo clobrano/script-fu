@@ -4,6 +4,12 @@
 ORG_FILEPATH=~/Me/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("~/Me/Orgmode/ReadItLater_archive.org" "~/Me/Orgmode/Orgmode.org_archive")
 
+command -v yt-dlp >/dev/null
+if [ $? -ne 0 ]; then
+    $WARNING "yt-dlp is missing."
+    exit 0
+fi
+
 command -v notify-send >/dev/null
 if [ $? -eq 0 ]; then
     NOTIFY="notify-send --app-name ReadItLater -i dialog-information"
