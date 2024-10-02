@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-set -x
-ORG_FILEPATH=~/Me/Orgmode/ReadItLater.org
-ORG_ARCHIVE_FILEPATH=("~/Me/Orgmode/ReadItLater_archive.org" "~/Me/Orgmode/Orgmode.org_archive")
+
+ORG_FILEPATH="$ME"/Orgmode/ReadItLater.org
+ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater_archive.org" "$ME/Orgmode/Orgmode.org_archive")
 
 command -v yt-dlp >/dev/null
 if [ $? -ne 0 ]; then
