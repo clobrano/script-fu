@@ -43,6 +43,7 @@ add_new_bookmark() {
     fi
     title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
     yq --inplace ".bookmarks += [{\"key\": \"${key}\", \"link\": \"${url}\"}]" "${BOOKMARKS}"
+    $NOTIFY "$key stored in Bookmark"
     return 0
 }
 
@@ -65,16 +66,14 @@ find_bookmark() {
 }
 
 if [[ $action == "add" ]]; then
-    add_new_bookmark
+    add_new_bookmark $2 $3
     exit $?
 fi
 
 if [ $action == "find" ]; then
-    find_bookmark
+    find_bookmark $2
     exit $?
 fi
 
 echo "[!] unsupported action \"$action\""
 exit 1
-
-
