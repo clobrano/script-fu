@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-
+set -x
 ORG_FILEPATH=~/Me/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("~/Me/Orgmode/ReadItLater_archive.org" "~/Me/Orgmode/Orgmode.org_archive")
 
@@ -30,7 +30,7 @@ get_tags() {
     command -v termux-setup-storage
     if [[ $? -eq 0 ]]; then
         TAG=`termux-dialog text --title "ReadItLater" --hint "Tags separated by \":\""`
-        if [[ -z $TAG ]]; then
+        if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
             echo ""
         else
             echo "$TAG:"
@@ -156,7 +156,7 @@ else
     url=$1
 fi
 
-if [[ ! $url =~ "http"  ]]; then
+if [[ ! $url =~ "http"  ]] && [[ ! $url =~ "www"  ]]; then
     exit 0
 fi
 
