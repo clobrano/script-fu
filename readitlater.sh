@@ -111,11 +111,11 @@ process_youtube() {
 
     creation_date=`date +%F`
 
-    all_tags=":video:$duration_tag:$custom_tags"
+    all_tags=":$duration_tag:video:$custom_tags"
 
     echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
 
-    $NOTIFY "$title ($all_tags) saved"
+    $NOTIFY "[$duration] $title ($all_tags) saved"
 }
 
 # Function to process a web page URL and categorize it
@@ -137,10 +137,10 @@ process_webpage() {
     creation_date=`date +%F`
 
 
-    all_tags=":reading:$duration_tag:$custom_tags"
+    all_tags=":$duration_tag:reading:$custom_tags"
 
     echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
-    $NOTIFY "$title ($all_tags) saved"
+    $NOTIFY "[${duration}m] $title ($all_tags) saved"
 }
 
 # Main script logic
