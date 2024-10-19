@@ -55,6 +55,7 @@ find_bookmark() {
         | column -t -s ' ' \
         | sort \
         | fzf \
+            --prompt "Search bookmark > " \
             --layout reverse --height=70% $QUERY\
             --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | xclip -selection clipboard)+abort'\
     )
