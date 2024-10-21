@@ -13,8 +13,8 @@ options:
     260: ddcutil setvcp 0x72 0xa0
   input-source:
     display-port: ddcutil setvcp 0x60 0x0f
-    hdmi: ddcutil setvcp 0x60 0x10
-    usbc: ddcutil setvcp 0x60 0x11
+    usbc: ddcutil setvcp 0x60 0x10
+    hdmi: ddcutil setvcp 0x60 0x11
   display-modes:
     deactivated: ddcutil setvcp 0xdc 0x00
     low-blue-mode: ddcutil setvcp 0xdc 0x0b
