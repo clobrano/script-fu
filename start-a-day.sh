@@ -3,7 +3,7 @@
 ## Fun script to remind you to call it a day after the required hours of work
 
 : ${TASK:="task"}
-TASK="${TASK} rc.color=off"
+TASK="${TASK} sl rc.color=off"
 
 # Set the required hours of work (included 1h for lunch) from input or default to 9
 required_hours=${1:-9}
@@ -30,16 +30,12 @@ echo ""
 echo "## Quarter Goals"
 ${TASK} project:QC +PENDING
 
-
 echo ""
-echo "## NEXT (overdue/today/High)"
-${TASK} "+OVERDUE or +TODAY or priority:H -COMPLETE"
+echo "## NEXT (overdue/today/high/active)"
+${TASK} "+OVERDUE or +TODAY or priority:H or +ACTIVE -COMPLETE"
 
 echo ""
 echo "## THIS WEEK"
 ${TASK} +PENDING due.after:sow due.before:eow
 
-echo ""
-echo "## ACTIVE"
-${TASK} +ACTIVE
 
