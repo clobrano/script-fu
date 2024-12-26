@@ -38,7 +38,7 @@ get_tags() {
     fi
     command -v termux-setup-storage
     if [[ $? -eq 0 ]]; then
-        TAG=`termux-dialog text -t "ReadItLater" -i "Tags separated by \":\""`
+        TAG=`termux-dialog text -t "ReadItLater" -i "Tags separated by \":\" | jq -r .text"`
         if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
             echo ""
         else
