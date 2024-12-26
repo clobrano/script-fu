@@ -37,5 +37,3 @@ ${TASK} "+OVERDUE or +TODAY or priority:H or +ACTIVE -COMPLETE"
 echo ""
 echo "## THIS WEEK"
 ${TASK} +PENDING due.after:sow due.before:eow
-
-

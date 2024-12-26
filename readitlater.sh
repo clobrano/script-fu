@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+set -x
 
-ORG_FILEPATH="$ME"/Orgmode/ReadItLater.org
-ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater_archive.org" "$ME/Orgmode/Orgmode.org_archive")
+: ${ME:="$HOME/Me"}
+
+ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
+ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode.org_archive")
 
 command -v yt-dlp >/dev/null
 if [ $? -ne 0 ]; then
@@ -10,15 +13,21 @@ if [ $? -ne 0 ]; then
     exit 0
 fi
 
-command -v notify-send >/dev/null
-if [ $? -eq 0 ]; then
-    NOTIFY="notify-send --app-name ReadItLater -i dialog-information"
-    WARNING="notify-send --app-name ReadItLater -i dialog-warning"
-else
-    NOTIFY="echo"
-    WARNING="echo [!]"
-fi
+# Default notification system is stdout
+NOTIFY="echo"
+WARNING="echo [!]"
 
+command -v termux-setup-storage > /dev/null
+if [ $? -eq 0 ]; then
+    NOTIFY="termux-notification --content"
+    WARNING="termux-notification --content"
+else
+    command -v notify-send >/dev/null
+    if [ $? -eq 0 ]; then
+        NOTIFY="notify-send --app-name ReadItLater -i dialog-information"
+        WARNING="notify-send --app-name ReadItLater -i dialog-information"
+    fi
+fi
 
 get_tags() {
     command -v kdialog >/dev/null
@@ -86,6 +95,8 @@ process_youtube() {
         return 0
     fi
 
+    
+
     custom_tags=`get_tags`
 
     if [[ "$url" =~ "playlist" ]]; then
@@ -119,6 +130,12 @@ process_youtube() {
 
     all_tags=":$duration_tag:video:$custom_tags"
 
+    # escape single and double quotes
+    title=${title//\"}
+    title=${title//\-}
+
+    
+
     echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
 
     $NOTIFY "[$duration] $title ($all_tags) saved"
@@ -146,10 +163,14 @@ process_webpage() {
     all_tags=":$duration_tag:reading:$custom_tags"
 
     echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
-    $NOTIFY "[${duration}m] $title ($all_tags) saved"
+    $NOTIFY "[${reading_time}m] $title ($all_tags) saved"
 }
 
 # Main script logic
+if [ ! -f ${ORG_FILEPATH} ]; then
+    $WARNING "Could not find :$ORG_FILEPATH:"
+    exit 1
+fi
 if [[ $# -eq 0 ]]; then
     url=`wl-paste`
 else
