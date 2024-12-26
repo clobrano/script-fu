@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-set -x
-
 : ${ME:="$HOME/Me"}
 
 ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
@@ -38,7 +36,10 @@ get_tags() {
     fi
     command -v termux-setup-storage
     if [[ $? -eq 0 ]]; then
-        TAG=`termux-dialog text -t "ReadItLater" -i "Tags separated by \":\""`
+        termux-dialog text -t "ReadItLater" -i "Tags separated by \":\""
+        DIALOG=`termux-dialog text -t "ReadItLater" -i "Tags separated by \":\""`
+        echo $DIALOG
+        TAG=`echo $DIALOG | jq -r .text`
         if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
             echo ""
         else
