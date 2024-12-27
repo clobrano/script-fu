@@ -34,7 +34,7 @@ get_tags() {
         echo "$TAG:"
         return 0
     fi
-    command -v termux-setup-storage
+    command -v termux-setup-storage >/dev/null
     if [[ $? -eq 0 ]]; then
         TAG=`termux-dialog text -t "ReadItLater" -i "Tags separated by \":\"" | jq -r .text`
         if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
@@ -93,8 +93,6 @@ process_youtube() {
         return 0
     fi
 
-    
-
     custom_tags=`get_tags`
 
     if [[ "$url" =~ "playlist" ]]; then
@@ -132,7 +130,6 @@ process_youtube() {
     title=${title//\"}
     title=${title//\-}
 
-    
 
     echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
 
