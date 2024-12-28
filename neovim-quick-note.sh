@@ -30,6 +30,7 @@ if [ $? -eq 0 ]; then
     NOTIFY="termux-notification --content"
     WARNING="termux-notification --content"
     TERMUX_CUSTOM="rc.data.location=$HOME/storage/documents/Me/Taskwarrior"
+    ME=$HOME/storage/documents/Me
 fi
 
 if [ -z "$description" ]; then
