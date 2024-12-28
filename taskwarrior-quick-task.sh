@@ -2,14 +2,14 @@
 # -*- coding: UTF-8 -*-
 command -v kdialog > /dev/null
 if [ $? -eq 0 ]; then
-    task=`kdialog --geometry 600x100+200+200 \
+    description=`kdialog --geometry 600x100+200+200 \
         --title QuickTask \
         --inputbox "For the Inbox" "Buy some milk"`
 fi
 
 command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
-    task=`termux-dialog text -t "QuickTask" -i "Buy some milk" | jq -r .text`
+    description=`termux-dialog text -t "QuickTask" -i "Buy some milk" | jq -r .text`
 fi
 
 # Default notification system is stdout
@@ -22,17 +22,20 @@ if [ $? -eq 0 ]; then
     WARNING="notify-send --app-name QuickTask -i dialog-information"
 fi
 
+
+TERMUX_CUSTOM=""
 command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
     NOTIFY="termux-notification --content"
     WARNING="termux-notification --content"
+    TERMUX_CUSTOM="rc.data.location=$HOME/storage/documents/Me/Taskwarrior"
 fi
 
-if [ -n "$task" ]; then
-    out=$(task add "$task" +inbox)
+if [ -n "$description" ]; then
+    out=$(task $TERMUX_CUSTOM add "$description" +inbox)
     if [ $? -eq 0 ]; then
         $NOTIFY "$out"
     else
-        $WARNING "$out"
+        $WARNING "could not create task: $description"
     fi
 fi
