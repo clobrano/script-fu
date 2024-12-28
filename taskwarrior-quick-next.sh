@@ -9,15 +9,15 @@ out=$(task $TERMUX_CUSTOM +PENDING \(+OVERDUE or +TODAY or priority:H or +ACTIVE
 
 command -v kdialog > /dev/null
 if [ $? -eq 0 ]; then
-    description=`kdialog --geometry 600x100+200+200 \
+    kdialog --geometry 600x100+200+200 \
         --font Monospace \
         --title Next \
-        --msgbox "$out"`
+        --msgbox "$out"
 fi
 
 command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
-    description=`termux-notification --content $out`
+    termux-notification --content "$out"
 fi
 
 
