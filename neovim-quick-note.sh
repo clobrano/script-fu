@@ -58,6 +58,7 @@ EOF
 fi
 
 echo "" >> "$noteFilename"
+echo "" >> "$noteFilename"
 echo `LC_TIME=C date +"%H:%M"` >> "$noteFilename"
 echo $description >> "$noteFilename"
 if [ $? -eq 0 ]; then
