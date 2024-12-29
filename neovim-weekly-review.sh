@@ -1,7 +1,23 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-end_date=$1
-start_date=$2
+week_no=$1
+year=${2:-`date +%Y`}
+
+week_range() {
+    # Thanks to https://stackoverflow.com/a/61733557/1197008
+    local _u _F _V
+    # dow Jan 01 (Mon 01 ... Sun 07)
+    _u="$(date -d "$1-01-01" "+%u")"
+    # First Monday
+    _F="$(date -d "$1-01-01 + $(( (8 - _u) % 7)) days" "+%F")"
+    # Week number of first Monday
+    _V="$(date -d "$_F" "+%V")"
+    printf -- "%s %s\n" "$(date -d "$_F + $(( 7*($2 - _V) )) days" "+%F")"       \
+                        "$(date -d "$_F + $(( 7*($2 - _V) + 6 )) days" "+%F")"
+}
+
+start_date=`week_range $year $week_no | cut -d" " -f1`
+end_date=`week_range $year $week_no | cut -d" " -f2`
 
 ONE_DAY_IN_SECONDS=86400
 
@@ -67,10 +83,12 @@ current=$start_date_sec
 while [ "$current" -le "$end_date_sec" ]; do
     day=$(date -d "@$current" +%F)
 
-    all=$(count_notes "$NOTE_PATH/$day.md")
+    normal=$(count_notes "$NOTE_PATH/$day.md")
     pos=$(count_positive_notes "$NOTE_PATH/$day.md")
     neg=$(count_negative_notes "$NOTE_PATH/$day.md")
 
+    all=$((normal + pos + neg))
+    echo "" >> $WEEKLY_PATH
     echo [[$day]]: $all notes, $pos+, $neg- >> $WEEKLY_PATH
     if [ $pos -gt 0 ]; then
         positive_notes "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
