@@ -61,8 +61,6 @@ echo "" >> "$noteFilename"
 echo "" >> "$noteFilename"
 echo `LC_TIME=C date +"%H:%M"` >> "$noteFilename"
 echo $description >> "$noteFilename"
-if [ $? -eq 0 ]; then
-    $NOTIFY "Note added"
-else
+if [ $? -ne 0 ]; then
     $WARNING "could not create note"
 fi
