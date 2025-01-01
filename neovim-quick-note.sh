@@ -24,12 +24,10 @@ if [ $? -eq 0 ]; then
 fi
 
 
-TERMUX_CUSTOM=""
 command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
     NOTIFY="termux-notification --content"
     WARNING="termux-notification --content"
-    TERMUX_CUSTOM="rc.data.location=$HOME/storage/documents/Me/Taskwarrior"
     ME=$HOME/storage/documents/Me
 fi
 
@@ -63,4 +61,6 @@ echo `LC_TIME=C date +"%H:%M"` >> "$noteFilename"
 echo $description >> "$noteFilename"
 if [ $? -ne 0 ]; then
     $WARNING "could not create note"
+    exit 1
 fi
+neovim-weekly-review.sh `date +%W`
