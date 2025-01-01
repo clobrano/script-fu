@@ -16,11 +16,15 @@ week_range() {
                         "$(date -d "$_F + $(( 7*($2 - _V) + 6 )) days" "+%F")"
 }
 
+# TODO: that might be wrong, but on 2025-01-01 `date +%W` returns "00", while
+# the right value is 01
+if [ "$week_no" = "00" ]; then
+    week_no="01"
+fi
+
 start_date=`week_range $year $week_no | cut -d" " -f1`
 end_date=`week_range $year $week_no | cut -d" " -f2`
-
 ONE_DAY_IN_SECONDS=86400
-
 end_date_sec=$(date -d "$end_date" +%s)
 if [ -n "$start_date" ]; then
     start_date_sec=$(date -d "$start_date" +%s)
@@ -30,10 +34,11 @@ else
     start_date_sec=$((end_date_sec - $ONE_WEEK_IN_SECONDS))
 fi
 
-echo "review between $(date -d @$start_date_sec +%F) and $(date -d @$end_date_sec +%F)"
 
 NOTE_PATH=$ME/Notes/Journal
-WEEKLY_PATH=$NOTE_PATH/$(date -d @$start_date_sec +%Y-%m-W%V).md
+FILE_NAME=$(date -d @$start_date_sec +%Y-%m-W%V).md
+WEEKLY_PATH=$NOTE_PATH/$FILE_NAME
+echo "updating review between $(date -d @$start_date_sec +%F) and $(date -d @$end_date_sec +%F) in $FILE_NAME"
 
 count_notes() {
     local path=$1
@@ -79,6 +84,10 @@ learnittoday() {
 echo "# Week $(date -d @$start_date_sec +%V) ($(date -d @$start_date_sec +%F) - $(date -d @$end_date_sec +%F)) review" > $WEEKLY_PATH
 echo "" >> $WEEKLY_PATH
 
+week_notes=0
+week_notes_pos=0
+week_notes_neg=0
+
 current=$start_date_sec
 while [ "$current" -le "$end_date_sec" ]; do
     day=$(date -d "@$current" +%F)
@@ -88,6 +97,9 @@ while [ "$current" -le "$end_date_sec" ]; do
     neg=$(count_negative_notes "$NOTE_PATH/$day.md")
 
     all=$((normal + pos + neg))
+    week_notes=$((week_notes + all))
+    week_notes_pos=$((week_notes_pos + pos))
+    week_notes_neg=$((week_notes_neg + neg))
     echo "" >> $WEEKLY_PATH
     echo [[$day]]: $all notes, $pos+, $neg- >> $WEEKLY_PATH
     if [ $pos -gt 0 ]; then
@@ -97,6 +109,9 @@ while [ "$current" -le "$end_date_sec" ]; do
     current=$((current + ONE_DAY_IN_SECONDS))
 done
 
+
+echo "" >> $WEEKLY_PATH
+echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a $WEEKLY_PATH
 echo "" >> $WEEKLY_PATH
 echo "" >> $WEEKLY_PATH
-echo "## propositi | tag:weekgoal due.after:$(date -d @$start_date_sec +%F) before:$(date -d @$end_date_sec +%F)" >>  $WEEKLY_PATH
+echo "## Week goals | tag:weekgoal due.after:$(date -d @$start_date_sec +%F) due.before:$(date -d @$end_date_sec +%F)" >>  $WEEKLY_PATH
