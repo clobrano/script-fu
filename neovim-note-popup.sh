@@ -9,8 +9,6 @@ if [[ ! -f "$noteFilename" ]]; then
     # 2024-08-21: Obsidian template uses some Templater specific things that
     # don't make sense here. Replicating them here
     # Template will be
-    # mood::
-    # summary::
     #
     # Last:
     # . week: [[7 days ago link]]
@@ -21,9 +19,6 @@ Last:
 . week: [[`date -d "last week" +%Y-%m-%d`]]
 . month: [[`date -d "last month" +%Y-%m-%d`]]
 . year: [[`date -d "last year" +%Y-%m-%d`]]
-
-mood::
-summary::
 
 ## `LC_TIME=C date +"%d %a"`
 EOF
