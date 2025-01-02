@@ -8,8 +8,7 @@
 
 BOOKMARKS="$HOME/Documents/bookmarks.yml"
 
-action=$1
-shift
+action=${1:-'find'}
 
 command -v notify-send >/dev/null
 if [ $? -eq 0 ]; then
