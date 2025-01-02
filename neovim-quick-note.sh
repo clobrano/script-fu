@@ -63,4 +63,7 @@ if [ $? -ne 0 ]; then
     $WARNING "could not create note"
     exit 1
 fi
-neovim-weekly-review.sh `date +%W`
+
+curr_dir=$(basedir $0)
+set -x
+$curr_dir/neovim-weekly-review.sh `date +%W`
