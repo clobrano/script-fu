@@ -64,6 +64,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-curr_dir=$(basedir $0)
+curr_dir=$(dirname $0)
 set -x
 $curr_dir/neovim-weekly-review.sh `date +%W`
