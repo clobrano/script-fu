@@ -66,4 +66,4 @@ fi
 
 curr_dir=$(dirname $0)
 set -x
-$curr_dir/neovim-weekly-review.sh `date +%W`
+$curr_dir/neovim-weekly-review.sh `date +%V`
