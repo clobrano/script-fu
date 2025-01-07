@@ -86,7 +86,9 @@ calculate_reading_time() {
 
 # Function to process a YouTube URL and categorize it
 process_youtube() {
-    url=$1
+    raw_url=$1
+    # remove GET arguments from url (e.g. t=Xs)
+    url=$(echo $url | cut -d'&' -f1)
 
     check_duplicate "$url"
     if [ $? -eq 1 ]; then
