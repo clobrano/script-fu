@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+: ${ME:=$HOME/Me}
 command -v kdialog > /dev/null
 if [ $? -eq 0 ]; then
     description=`kdialog --geometry 600x100+200+200 \
