@@ -33,10 +33,11 @@ if [ $? -eq 0 ]; then
 fi
 
 if [ -n "$description" ]; then
-    out=$(task $TERMUX_CUSTOM add "$description" +inbox)
-    if [ $? -eq 0 ]; then
+    out=$(task $TERMUX_CUSTOM add $description +inbox)
+    rc=$?
+    if [ $rc -eq 0 ]; then
         $NOTIFY "$out"
     else
-        $WARNING "could not create task: $description"
+        $WARNING "could not create task - $description - (error: $rc: $out)"
     fi
 fi
