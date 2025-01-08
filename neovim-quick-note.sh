@@ -1,34 +1,38 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+: ${ME:=$HOME/Me}
+description=$@
 
-command -v kdialog > /dev/null
-if [ $? -eq 0 ]; then
-    description=`kdialog --geometry 600x100+200+200 \
-        --title QuickNote \
-        --inputbox "What are you thinking?" "I conquered the world today"`
-fi
+if [ -z "$description" ]; then
+    command -v kdialog > /dev/null
+    if [ $? -eq 0 ]; then
+        description=`kdialog --geometry 600x100+200+200 \
+            --title QuickNote \
+            --inputbox "What are you thinking?" "I conquered the world today"`
+    fi
 
-command -v termux-setup-storage > /dev/null
-if [ $? -eq 0 ]; then
-    description=`termux-dialog text -t "What are you thinking?" -i "I conquered the world today" | jq -r .text`
-fi
+    command -v termux-setup-storage > /dev/null
+    if [ $? -eq 0 ]; then
+        description=`termux-dialog text -t "What are you thinking?" -i "I conquered the world today" | jq -r .text`
+    fi
 
-# Default notification system is stdout
-NOTIFY="echo"
-WARNING="echo [!]"
+    # Default notification system is stdout
+    NOTIFY="echo"
+    WARNING="echo [!]"
 
-command -v notify-send > /dev/null
-if [ $? -eq 0 ]; then
-    NOTIFY="notify-send --app-name QuickNote -i dialog-information"
-    WARNING="notify-send --app-name QuickNote -i dialog-information"
-fi
+    command -v notify-send > /dev/null
+    if [ $? -eq 0 ]; then
+        NOTIFY="notify-send --app-name QuickNote -i dialog-information"
+        WARNING="notify-send --app-name QuickNote -i dialog-information"
+    fi
 
 
-command -v termux-setup-storage > /dev/null
-if [ $? -eq 0 ]; then
-    NOTIFY="termux-notification --content"
-    WARNING="termux-notification --content"
-    ME=$HOME/storage/documents/Me
+    command -v termux-setup-storage > /dev/null
+    if [ $? -eq 0 ]; then
+        NOTIFY="termux-notification --content"
+        WARNING="termux-notification --content"
+        ME=$HOME/storage/documents/Me
+    fi
 fi
 
 if [ -z "$description" ]; then
@@ -54,16 +58,27 @@ Last:
 ## `LC_TIME=C date +"%d %a"`
 EOF
 fi
+rc=$?
+if [ $rc -ne 0 ]; then
+    $WARNING "could not create note $noteFilename: error $rc"
+    exit 1
+fi
 
 echo "" >> "$noteFilename"
 echo "" >> "$noteFilename"
 echo `LC_TIME=C date +"%H:%M"` >> "$noteFilename"
 echo $description >> "$noteFilename"
-if [ $? -ne 0 ]; then
-    $WARNING "could not create note"
+rc=$?
+if [ $rc -ne 0 ]; then
+    $WARNING "could not update note: error $rc"
     exit 1
 fi
 
 curr_dir=$(dirname $0)
 set -x
-$curr_dir/neovim-weekly-review.sh `date +%V`
+out=$($curr_dir/neovim-weekly-review.sh `date +%V`)
+if [ $? -eq 0 ]; then
+    $NOTIFY "$out"
+else
+    $WARNING "weekly review failed: $out"
+fi
