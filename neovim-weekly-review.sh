@@ -113,4 +113,4 @@ echo "" >> $WEEKLY_PATH
 echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a $WEEKLY_PATH
 echo "" >> $WEEKLY_PATH
 echo "" >> $WEEKLY_PATH
-echo "## Week goals | tag:weekgoal due.after:$(date -d @$start_date_sec +%F) due.before:$(date -d @$end_date_sec +%F)" >>  $WEEKLY_PATH
+echo "## Week goals | due.after:$(date -d @$start_date_sec +%F) due.before:$(date -d @$end_date_sec +%F)" >>  $WEEKLY_PATH
