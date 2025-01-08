@@ -5,7 +5,7 @@ command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
     TERMUX_CUSTOM="rc.data.location=$HOME/storage/documents/Me/Taskwarrior"
 fi
-out=$(task $TERMUX_CUSTOM +PENDING \(+OVERDUE or +TODAY or priority:H or +ACTIVE\) sl)
+out=$(task $TERMUX_CUSTOM +PENDING \(+OVERDUE or +TODAY or priority:H or +ACTIVE\) tag.not=main sl)
 
 command -v kdialog > /dev/null
 if [ $? -eq 0 ]; then
