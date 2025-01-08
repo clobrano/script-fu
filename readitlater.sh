@@ -86,7 +86,9 @@ calculate_reading_time() {
 
 # Function to process a YouTube URL and categorize it
 process_youtube() {
-    url=$1
+    raw_url=$1
+    # remove GET arguments from url (e.g. t=Xs)
+    url=$(echo $url | cut -d'&' -f1)
 
     check_duplicate "$url"
     if [ $? -eq 1 ]; then
@@ -131,8 +133,16 @@ process_youtube() {
     title=${title//\-}
 
 
-    echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: $duration" >> ${ORG_FILEPATH}
+    cat << EOF >> ${ORG_FILEPATH}
+* TODO $title $all_tags
+  :PROPERTIES:
+  :CREATED: ${creation_date}
+  :LEN: ${duration_minutes:-0}
+  :URL: ${url}
+  :END:
+  $url
 
+EOF
     $NOTIFY "[$duration] $title ($all_tags) saved"
 }
 
@@ -157,7 +167,16 @@ process_webpage() {
 
     all_tags=":$duration_tag:reading:$custom_tags"
 
-    echo -e "* $title $all_tags\n  $url\n  created: [${creation_date}]\n  duration: ${reading_time} min" >> ${ORG_FILEPATH}
+    cat << EOF >> ${ORG_FILEPATH}
+* TODO $title $all_tags
+  :PROPERTIES:
+  :CREATED: ${creation_date}
+  :LEN: ${reading_time:-0}
+  :URL: ${url}
+  :END:
+  $url
+
+EOF
     $NOTIFY "[${reading_time}m] $title ($all_tags) saved"
 }
 

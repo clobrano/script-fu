@@ -82,7 +82,6 @@ learnittoday() {
 }
 
 echo "# Week $(date -d @$start_date_sec +%V) ($(date -d @$start_date_sec +%F) - $(date -d @$end_date_sec +%F)) review" > $WEEKLY_PATH
-echo "" >> $WEEKLY_PATH
 
 week_notes=0
 week_notes_pos=0
@@ -104,8 +103,8 @@ while [ "$current" -le "$end_date_sec" ]; do
     echo [[$day]]: $all notes, $pos+, $neg- >> $WEEKLY_PATH
     if [ $pos -gt 0 ]; then
         positive_notes "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
-        learnittoday "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
     fi
+    learnittoday "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
     current=$((current + ONE_DAY_IN_SECONDS))
 done
 

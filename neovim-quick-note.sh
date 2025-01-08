@@ -66,7 +66,7 @@ fi
 
 command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
-    curr_dir=$(dirname $0)
+q    curr_dir=$(dirname $0)
     set -x
     $curr_dir/neovim-weekly-review.sh `date +%W`
 fi
