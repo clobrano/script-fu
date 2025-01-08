@@ -74,11 +74,13 @@ if [ $rc -ne 0 ]; then
     exit 1
 fi
 
-curr_dir=$(dirname $0)
-set -x
-out=$($curr_dir/neovim-weekly-review.sh `date +%V`)
+command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
-    $NOTIFY "$out"
-else
-    $WARNING "weekly review failed: $out"
+q    curr_dir=$(dirname $0)
+    set -x
+    $curr_dir/neovim-weekly-review.sh `date +%W`
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        $WARNING "weekly review failed: $out"
+    fi
 fi
