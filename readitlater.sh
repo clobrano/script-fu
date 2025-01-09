@@ -75,7 +75,7 @@ calculate_reading_time() {
 
     if [ "$reading_time" -le 10 ]; then
         duration_tag="short"
-    elif [ "$reading_time" -le 20 ]; then
+    elif [ "$reading_time" -le 30 ]; then
         duration_tag="mid"
     else
         duration_tag="long"
@@ -117,7 +117,7 @@ process_youtube() {
 
         if [ "$duration_minutes" -le 10 ]; then
             duration_tag="short"
-        elif [ "$duration_minutes" -le 20 ]; then
+        elif [ "$duration_minutes" -le 30 ]; then
             duration_tag="mid"
         else
             duration_tag="long"
