@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-: ${ME:="$HOME/Me"}
+: "${ME:="$HOME/Me"}"
 
 ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode.org_archive")
