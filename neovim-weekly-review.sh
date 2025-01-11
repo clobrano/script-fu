@@ -81,6 +81,15 @@ learnittoday() {
     fi
 }
 
+key_notes() {
+    # notes to report in weekly regardless being neutral, positive or negative
+    local path=$1
+    if [ -f $path ]; then
+        grep -E 'KEY:' $path
+    fi
+}
+
+
 echo "# Week $(date -d @$start_date_sec +%V) ($(date -d @$start_date_sec +%F) - $(date -d @$end_date_sec +%F)) review" > $WEEKLY_PATH
 
 week_notes=0
@@ -105,6 +114,7 @@ while [ "$current" -le "$end_date_sec" ]; do
         positive_notes "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
     fi
     learnittoday "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
+    key_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
     current=$((current + ONE_DAY_IN_SECONDS))
 done
 
