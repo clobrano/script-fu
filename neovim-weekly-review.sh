@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-week_no=$1
-year=${2:-`date +%Y`}
+week_no=${1:-$(date +%V)}
+year=${2:-$(date +%Y)}
 
 week_range() {
     # Thanks to https://stackoverflow.com/a/61733557/1197008
@@ -22,75 +22,75 @@ if [ "$week_no" = "00" ]; then
     week_no="01"
 fi
 
-start_date=`week_range $year $week_no | cut -d" " -f1`
-end_date=`week_range $year $week_no | cut -d" " -f2`
+start_date=$(week_range "$year" "$week_no" | cut -d" " -f1)
+end_date=$(week_range "$year" "$week_no" | cut -d" " -f2)
 ONE_DAY_IN_SECONDS=86400
 end_date_sec=$(date -d "$end_date" +%s)
 if [ -n "$start_date" ]; then
     start_date_sec=$(date -d "$start_date" +%s)
 else
     # default to a 7 days window
-    ONE_WEEK_IN_SECONDS=$(($ONE_DAY_IN_SECONDS*6))
-    start_date_sec=$((end_date_sec - $ONE_WEEK_IN_SECONDS))
+    ONE_WEEK_IN_SECONDS=$((ONE_DAY_IN_SECONDS * 6))
+    start_date_sec=$((end_date_sec - ONE_WEEK_IN_SECONDS))
 fi
 
 
 NOTE_PATH=$ME/Notes/Journal
-FILE_NAME=$(date -d @$start_date_sec +%Y-%m-W%V).md
+FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m-W%V).md
 WEEKLY_PATH=$NOTE_PATH/$FILE_NAME
-echo "updating review between $(date -d @$start_date_sec +%F) and $(date -d @$end_date_sec +%F) in $FILE_NAME"
+echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in $FILE_NAME"
 
 count_notes() {
     local path=$1
-    if [ ! -f $path ]; then
+    if [ ! -f "$path" ]; then
         echo 0
     else
-        echo $(grep -E '^\.\. ' $path | wc -l)
+        grep -c -E '^\.\. ' "$path"
     fi
 }
 
 count_positive_notes() {
     local path=$1
-    if [ ! -f $path ]; then
+    if [ ! -f "$path" ]; then
         echo 0
     else
-        echo $(grep -E '^\.\+ ' $path | wc -l)
+        grep -c -E '^\.\+ ' "$path"
     fi
 }
 
 count_negative_notes() {
     local path=$1
-    if [ ! -f $path ]; then
+    if [ ! -f "$path" ]; then
         echo 0
     else
-        grep -E '^\.- ' $path | wc -l
+        grep -c -E '^\.- ' "$path"
     fi
 }
 
 positive_notes() {
     local path=$1
-    if [ -f $path ]; then
-        grep -E '^\.\+ ' $path
+    if [ -f "$path" ]; then
+        grep -E '^\.\+ ' "$path"
     fi
 }
 
 learnittoday() {
     local path=$1
-    if [ -f $path ]; then
-        grep -E '^.. #til' $path
+    if [ -f "$path" ]; then
+        grep -E '^.. #til' "$path"
     fi
 }
 
 key_notes() {
     # notes to report in weekly regardless being neutral, positive or negative
     local path=$1
-    if [ -f $path ]; then
-        grep -E 'KEY:' $path
+    if [ -f "$path" ]; then
+        grep -E 'KEY:' "$path"
     fi
 }
 
 
-echo "# Week $(date -d @$start_date_sec +%V) ($(date -d @$start_date_sec +%F) - $(date -d @$end_date_sec +%F)) review" > $WEEKLY_PATH
+echo "# Week $(date -d @"$start_date_sec" +%V) ($(date -d @"$start_date_sec" +%F) - $(date -d @"$end_date_sec" +%F)) review" > "$WEEKLY_PATH"
 
 week_notes=0
 week_notes_pos=0
@@ -108,19 +108,18 @@ while [ "$current" -le "$end_date_sec" ]; do
     week_notes=$((week_notes + all))
     week_notes_pos=$((week_notes_pos + pos))
     week_notes_neg=$((week_notes_neg + neg))
-    echo "" >> $WEEKLY_PATH
-    echo [[$day]]: $all notes, $pos+, $neg- >> $WEEKLY_PATH
-    if [ $pos -gt 0 ]; then
-        positive_notes "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
+    echo "" >> "$WEEKLY_PATH"
+    echo [["$day"]]: "$all" notes, "$pos"+, "$neg"- >> "$WEEKLY_PATH"
+    if [ "$pos" -gt 0 ]; then
+        positive_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
     fi
-    learnittoday "$NOTE_PATH/$day.md" >> $WEEKLY_PATH
+    learnittoday "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
     key_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
     current=$((current + ONE_DAY_IN_SECONDS))
 done
 
 
-echo "" >> $WEEKLY_PATH
-echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a $WEEKLY_PATH
-echo "" >> $WEEKLY_PATH
-echo "" >> $WEEKLY_PATH
-echo "## Week goals | due.after:$(date -d @$start_date_sec +%F) due.before:$(date -d @$end_date_sec +%F)" >>  $WEEKLY_PATH
+echo "" >> "$WEEKLY_PATH"
+echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a "$WEEKLY_PATH"
+echo ""; echo "" >> "$WEEKLY_PATH"
+echo "## Week goals | due.after:$(date -d @"$start_date_sec" +%F) due.before:$(date -d @"$end_date_sec" +%F)" >>  "$WEEKLY_PATH"
