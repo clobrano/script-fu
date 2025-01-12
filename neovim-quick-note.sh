@@ -6,9 +6,9 @@ description=$@
 if [ -z "$description" ]; then
     command -v kdialog > /dev/null
     if [ $? -eq 0 ]; then
-        description=`kdialog --geometry 600x100+200+200 \
+        description=$(kdialog --geometry 600x100+200+200 \
             --title QuickNote \
-            --inputbox "What are you thinking?" "I conquered the world today"`
+            --textinputbox "What are you thinking?")
     fi
 
     command -v termux-setup-storage > /dev/null
