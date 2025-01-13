@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-: ${ME:=$HOME/Me}
+: "${ME:=$HOME/Me}"
 description=$@
+
+# Default notification system is stdout
+WARNING="echo [!]"
+command -v notify-send > /dev/null
+if [ $? -eq 0 ]; then
+    WARNING="notify-send --app-name QuickNote -i dialog-warning"
+fi
+
+command -v termux-setup-storage > /dev/null
+if [ $? -eq 0 ]; then
+    ME=$HOME/storage/documents/Me
+    WARNING="termux-notification --content"
+fi
 
 if [ -z "$description" ]; then
     command -v kdialog > /dev/null
@@ -15,26 +28,9 @@ if [ -z "$description" ]; then
     if [ $? -eq 0 ]; then
         description=`termux-dialog text -t "What are you thinking?" -i "I conquered the world today" | jq -r .text`
     fi
-
-    # Default notification system is stdout
-    NOTIFY="echo"
-    WARNING="echo [!]"
-
-    command -v notify-send > /dev/null
-    if [ $? -eq 0 ]; then
-        NOTIFY="notify-send --app-name QuickNote -i dialog-information"
-        WARNING="notify-send --app-name QuickNote -i dialog-information"
-    fi
-
-
-    command -v termux-setup-storage > /dev/null
-    if [ $? -eq 0 ]; then
-        NOTIFY="termux-notification --content"
-        WARNING="termux-notification --content"
-        ME=$HOME/storage/documents/Me
-    fi
 fi
 
+# if description is still empty we must exit
 if [ -z "$description" ]; then
     echo "No description"
     exit 0
@@ -65,7 +61,6 @@ if [ $rc -ne 0 ]; then
 fi
 
 echo "" >> "$noteFilename"
-echo "" >> "$noteFilename"
 echo `LC_TIME=C date +"%H:%M"` >> "$noteFilename"
 echo $description >> "$noteFilename"
 rc=$?
@@ -74,13 +69,12 @@ if [ $rc -ne 0 ]; then
     exit 1
 fi
 
-command -v termux-setup-storage > /dev/null
-if [ $? -eq 0 ]; then
-q    curr_dir=$(dirname $0)
+if ! command -v termux-setup-storage > /dev/null; then
+    curr_dir=$(dirname $0)
     set -x
-    $curr_dir/neovim-weekly-review.sh `date +%W`
+    out=$("$curr_dir"/neovim-weekly-review.sh)
     rc=$?
     if [ $rc -ne 0 ]; then
-        $WARNING "weekly review failed: $out"
+        $WARNING "weekly review failed: $out (error: $rc)"
     fi
 fi
