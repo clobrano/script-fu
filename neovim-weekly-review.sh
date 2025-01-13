@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+: "${ME:=$HOME/Me}"
+
 week_no=${1:-$(date +%V)}
 year=${2:-$(date +%Y)}
 
