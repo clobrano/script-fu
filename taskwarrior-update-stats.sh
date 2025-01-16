@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 # Use default taskwarrior binary if not set externally
-
-command -v task >/dev/null
-if [[ $? -ne 0 ]]; then
+set -e
+if ! command -v task >/dev/null; then
     exit 0
 fi
 
 TASK="task rc:~/.taskworkrc"
 
-## Ignore "no matches" error
 DUE_TODAY=$(${TASK} +PENDING +TODAY count)
 
 OVERDUE=$(${TASK} +OVERDUE count)
