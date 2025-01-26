@@ -38,8 +38,12 @@ fi
 
 
 NOTE_PATH=$ME/Notes/Journal
+
+
 FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m-W%V).md
 WEEKLY_PATH=$NOTE_PATH/$FILE_NAME
+FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m).md
+MONTHLY_PATH=$NOTE_PATH/$FILE_NAME
 echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in $FILE_NAME"
 
 count_notes() {
@@ -125,3 +129,19 @@ echo "" >> "$WEEKLY_PATH"
 echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a "$WEEKLY_PATH"
 echo ""; echo "" >> "$WEEKLY_PATH"
 echo "## Week goals | due.after:$(date -d @"$start_date_sec" +%F) due.before:$(date -d @"$end_date_sec" +%F)" >>  "$WEEKLY_PATH"
+
+#set -x
+{
+echo "# $(date +'%Y %B') review"
+
+for day in $(seq -w 1 31); do
+    out=$(grep "#weeklyreview" "$NOTE_PATH/$(date +%Y)-$(date +%m)-$day.md" 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        dd="$(date +%Y)-$(date +%m)-$day"
+        echo ""
+        echo "[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)"
+        echo "$out" | awk -F"weeklyreview" '{print $2}'
+    fi
+done
+
+} >  "$MONTHLY_PATH"
