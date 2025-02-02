@@ -47,6 +47,29 @@ get_tags() {
     echo ""
 }
 
+get_video_data_fallback() {
+    command -v kdialog >/dev/null
+    if [[ $? -eq 0 ]]; then
+        DATA=`kdialog --title ReadItLater --inputbox "description and duration (comma separated)"`
+        if [ $? -eq 0 ] && [ -n "$DATA" ]; then
+            echo "$DATA"
+            return 0
+        fi
+        return 1
+    fi
+    command -v termux-setup-storage >/dev/null
+    if [[ $? -eq 0 ]]; then
+        DATA=`termux-dialog text -t "ReadItLater" -i "description and duration (comma separated)" | jq -r .text`
+        if [ $? -eq 0 ] && [ -n "$DATA" ]; then
+            echo "$DATA"
+            return 0
+        fi
+        return 1
+    fi
+    echo ""
+    return 1
+}
+
 
 check_duplicate() {
     local url=$1
@@ -55,7 +78,7 @@ check_duplicate() {
         $WARNING "Already in ReadItLater"
         return 1
     fi
-    for archive in ${ORG_ARCHIVE_FILEPATH[@]}; do
+    for archive in "${ORG_ARCHIVE_FILEPATH[@]}"; do
         grep "$url" $archive >/dev/null
         if [ $? -eq 0 ]; then
             $WARNING "Already in ReadItLater Archive"
@@ -64,7 +87,6 @@ check_duplicate() {
     done
     return 0
 }
-
 
 # Function to estimate reading time and categorize it
 calculate_reading_time() {
@@ -99,11 +121,23 @@ process_youtube() {
 
     if [[ "$url" =~ "playlist" ]]; then
         title=$(yt-dlp --skip-download --print playlist_title "$url" | uniq)
+        rc=$?
         title="$title playlist"
     else
         info=$(yt-dlp --get-title --get-duration "$url")
+        rc=$?
         title=$(echo "$info" | sed -n '1p')
         duration=$(echo "$info" | sed -n '2p')
+    fi
+
+    if [ $rc -ne 0 ]; then
+        values=$(get_video_data_fallback)
+        title=$(echo "$values" | cut -d"," -f1)
+        duration=$(echo "$values" | cut -d"," -f2)
+    fi
+    if [ -z "$title" ] || [ -z "$duration" ]; then
+        $WARNING "Could not process link: missing title or duration"
+        exit 1
     fi
 
     if [[ -z $duration ]]; then
