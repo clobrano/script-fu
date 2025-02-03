@@ -21,7 +21,11 @@ fi
 
 add_new_bookmark() {
     local url=$1
-    local key=$2
+    shift
+    local key=$*
+
+    # replace spaces with underscore for the key
+    key="${key// /_}"
 
     if [[ -z $url ]]; then
         url=`wl-paste`
@@ -66,7 +70,8 @@ find_bookmark() {
 }
 
 if [[ $action == "add" ]]; then
-    add_new_bookmark $2 $3
+    shift
+    add_new_bookmark $*
     exit $?
 fi
 
