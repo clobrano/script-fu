@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+myremind -m -c+n
+
+killall remind > /dev/null 2>&1
+myremind -z1 -k'notify-send --app-name MyRemind -i dialog-information -u normal %s' &
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "[!] Could not start Remind: error $rc"
+    exit 1
+fi
+echo "[+] Remind started"

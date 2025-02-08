@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+REM_FILE="$HOME/Me/Notes/1-Projects/IdealWeekPlanner/ideal-week.rem"
+remind "$@" "$REM_FILE"
