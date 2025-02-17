@@ -18,34 +18,6 @@ week_range() {
                         "$(date -d "$_F + $(( 7*($2 - _V) + 6 )) days" "+%F")"
 }
 
-# TODO: that might be wrong, but on 2025-01-01 `date +%W` returns "00", while
-# the right value is 01
-if [ "$week_no" = "00" ]; then
-    week_no="01"
-fi
-
-start_date=$(week_range "$year" "$week_no" | cut -d" " -f1)
-end_date=$(week_range "$year" "$week_no" | cut -d" " -f2)
-ONE_DAY_IN_SECONDS=86400
-end_date_sec=$(date -d "$end_date" +%s)
-if [ -n "$start_date" ]; then
-    start_date_sec=$(date -d "$start_date" +%s)
-else
-    # default to a 7 days window
-    ONE_WEEK_IN_SECONDS=$((ONE_DAY_IN_SECONDS * 6))
-    start_date_sec=$((end_date_sec - ONE_WEEK_IN_SECONDS))
-fi
-
-
-NOTE_PATH=$ME/Notes/Journal
-
-
-FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m-W%V).md
-WEEKLY_PATH=$NOTE_PATH/$FILE_NAME
-FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m).md
-MONTHLY_PATH=$NOTE_PATH/$FILE_NAME
-echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in $FILE_NAME"
-
 count_notes() {
     local path=$1
     if [ ! -f "$path" ]; then
@@ -96,7 +68,77 @@ key_notes() {
 }
 
 
-echo "# Week $(date -d @"$start_date_sec" +%V) ($(date -d @"$start_date_sec" +%F) - $(date -d @"$end_date_sec" +%F)) review" > "$WEEKLY_PATH"
+# TODO: that might be wrong, but on 2025-01-01 `date +%W` returns "00", while
+# the right value is 01
+if [ "$week_no" = "00" ]; then
+    week_no="01"
+fi
+
+# Remove leading 0
+week_no=${week_no#0}
+
+start_date=$(week_range "$year" "$week_no" | cut -d" " -f1)
+end_date=$(week_range "$year" "$week_no" | cut -d" " -f2)
+ONE_DAY_IN_SECONDS=86400
+end_date_sec=$(date -d "$end_date" +%s)
+if [ -n "$start_date" ]; then
+    start_date_sec=$(date -d "$start_date" +%s)
+else
+    # default to a 7 days window
+    ONE_WEEK_IN_SECONDS=$((ONE_DAY_IN_SECONDS * 6))
+    start_date_sec=$((end_date_sec - ONE_WEEK_IN_SECONDS))
+fi
+
+
+NOTE_PATH=$ME/Notes/Journal
+
+FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m-W%V).md
+WEEKLY_PATH=$NOTE_PATH/$FILE_NAME
+FILE_NAME="$(date +%Y)-$(date +%m).md"
+MONTHLY_PATH=$NOTE_PATH/$FILE_NAME
+
+
+# Monthly review
+{
+echo "# $(date +'%Y %B') review"
+
+for day in $(seq -w 1 31); do
+    out=$(grep "#weeklyreview" "$NOTE_PATH/$(date +%Y)-$(date +%m)-$day.md" 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        dd="$(date +%Y)-$(date +%m)-$day"
+        echo ""
+        echo "[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)"
+        echo "$out" | awk -F"weeklyreview" '{print $2}'
+    fi
+done
+
+} >  "$NOTE_PATH/$(date +%Y)-$(date +%m).md"
+
+# Just logging
+echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in $FILE_NAME"
+
+# Here start write the file from scratch (note the override ">" at the end of section)
+{
+# Weekly note header
+echo "# Week $(date -d @"$start_date_sec" +%V) ($(date -d @"$start_date_sec" +%F) - $(date -d @"$end_date_sec" +%F)) review"
+echo " "
+echo " "
+} > "$WEEKLY_PATH"
+
+{
+# Weekly goals
+echo "## Week goals | due.after:$(date -d @"$start_date_sec" +%F) due.before:$(date -d @"$end_date_sec" +%F)"
+echo " "
+echo "---"
+echo " "
+
+# Weekly readitlater
+readitlater-report.py >>  "$WEEKLY_PATH"
+
+} >> "$WEEKLY_PATH"
+
+
+# Weekly review
 
 week_notes=0
 week_notes_pos=0
@@ -128,20 +170,5 @@ done
 echo "" >> "$WEEKLY_PATH"
 echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a "$WEEKLY_PATH"
 echo ""; echo "" >> "$WEEKLY_PATH"
-echo "## Week goals | due.after:$(date -d @"$start_date_sec" +%F) due.before:$(date -d @"$end_date_sec" +%F)" >>  "$WEEKLY_PATH"
 
-#set -x
-{
-echo "# $(date +'%Y %B') review"
 
-for day in $(seq -w 1 31); do
-    out=$(grep "#weeklyreview" "$NOTE_PATH/$(date +%Y)-$(date +%m)-$day.md" 2>/dev/null)
-    if [ $? -eq 0 ]; then
-        dd="$(date +%Y)-$(date +%m)-$day"
-        echo ""
-        echo "[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)"
-        echo "$out" | awk -F"weeklyreview" '{print $2}'
-    fi
-done
-
-} >  "$MONTHLY_PATH"
