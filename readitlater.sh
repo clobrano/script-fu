@@ -174,7 +174,7 @@ process_youtube() {
   :PROPERTIES:
   :CREATED: ${creation_date}
   :LEN: ${duration_minutes:-0}
-  :URL: ${url}
+  :COMMENT:
   :END:
   $url
 
@@ -208,7 +208,7 @@ process_webpage() {
   :PROPERTIES:
   :CREATED: ${creation_date}
   :LEN: ${reading_time:-0}
-  :URL: ${url}
+  :COMMENT:
   :END:
   $url
 
