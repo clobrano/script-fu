@@ -51,7 +51,7 @@ get_tags() {
 get_video_data_fallback() {
     command -v kdialog >/dev/null
     if [[ $? -eq 0 ]]; then
-        DATA=$(kdialog --title ReadItLater --inputbox "description and duration (comma separated)")
+        DATA=$(kdialog --title ReadItLater --inputbox "tags, description and duration (comma separated)")
         if [ $? -eq 0 ] && [ -n "$DATA" ]; then
             echo "$DATA"
             return 0
@@ -60,7 +60,7 @@ get_video_data_fallback() {
     fi
     command -v termux-setup-storage >/dev/null
     if [[ $? -eq 0 ]]; then
-        DATA=$(termux-dialog text -t "ReadItLater" -i "description and duration (comma separated)" | jq -r .text)
+        DATA=$(termux-dialog text -t "ReadItLater" -i "tags, description and duration (comma separated)" | jq -r .text)
         if [ $? -eq 0 ] && [ -n "$DATA" ]; then
             echo "$DATA"
             return 0
@@ -118,25 +118,17 @@ process_youtube() {
         return 0
     fi
 
-    custom_tags=`get_tags`
+    values=$(get_video_data_fallback)
 
-    if [[ "$url" =~ "playlist" ]]; then
-        title=$(yt-dlp --skip-download --print playlist_title "$url" | uniq)
-        rc=$?
-        title="$title playlist"
-    else
-        info=$(yt-dlp --skip-download --get-title --get-duration "$url")
-        rc=$?
-        title=$(echo "$info" | sed -n '1p')
-        duration=$(echo "$info" | sed -n '2p')
-    fi
+    custom_tags=$(echo "$values" | cut -d"," -f1 | tr -d ' ')
 
-    if [ $rc -ne 0 ]; then
-        values=$(get_video_data_fallback)
-        title=$(echo "$values" | cut -d"," -f1)
-        duration_minutes=$(echo "$values" | cut -d"," -f2)
-        duration=$((duration_minutes * 60))
-    fi
+    title=$(echo "$values" | cut -d"," -f2)
+    # remove trailing white spaces
+    title=$(echo $title)
+
+    duration_minutes=$(echo "$values" | cut -d"," -f3 | tr -d ' ')
+    duration=$((duration_minutes * 60))
+
     if [ -z "$title" ] || [ -z "$duration" ]; then
         $WARNING "Could not process link: missing title or duration"
         exit 1
