@@ -23,17 +23,17 @@ if [ $? -eq 0 ]; then
     WARNING="notify-send --app-name QuickTask -i dialog-information"
 fi
 
-
-TERMUX_CUSTOM=""
 command -v termux-setup-storage > /dev/null
 if [ $? -eq 0 ]; then
     NOTIFY="termux-notification --content"
     WARNING="termux-notification --content"
-    TERMUX_CUSTOM="rc.data.location=$HOME/storage/documents/Me/Taskwarrior"
+    CUSTOM="rc.data.location=$HOME/storage/documents/Me/Taskwarrior"
+else
+    CUSTOM="rc.data.location=$ME/Taskwarrior"
 fi
 
 if [ -n "$description" ]; then
-    out=$(task $TERMUX_CUSTOM add $description +inbox)
+    out=$(task $CUSTOM add $description +inbox)
     rc=$?
     if [ $rc -eq 0 ]; then
         $NOTIFY "$out"

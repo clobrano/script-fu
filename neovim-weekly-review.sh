@@ -115,27 +115,28 @@ done
 } >  "$NOTE_PATH/$(date +%Y)-$(date +%m).md"
 
 # Just logging
-echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in $FILE_NAME"
+echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in Week:$(basename $WEEKLY_PATH) and Month:$FILE_NAME files"
 
 # Here start write the file from scratch (note the override ">" at the end of section)
 {
 # Weekly note header
 echo "# Week $(date -d @"$start_date_sec" +%V) ($(date -d @"$start_date_sec" +%F) - $(date -d @"$end_date_sec" +%F)) review"
-echo " "
-echo " "
+echo ""
+echo ""
 } > "$WEEKLY_PATH"
 
 {
 # Weekly goals
-echo "## Week goals | due.after:$(date -d @"$start_date_sec" +%F) due.before:$(date -d @"$end_date_sec" +%F)"
-echo " "
+echo "## Week goals"
+task weekly_goals
+echo ""
 echo "---"
-echo " "
+echo ""
+} >> "$WEEKLY_PATH"
 
 # Weekly readitlater
 readitlater-report.py >>  "$WEEKLY_PATH"
-
-} >> "$WEEKLY_PATH"
+echo ""
 
 
 # Weekly review

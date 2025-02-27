@@ -24,9 +24,6 @@ add_new_bookmark() {
     shift
     local key=$*
 
-    # replace spaces with underscore for the key
-    key="${key// /_}"
-
     if [[ -z $url ]]; then
         url=`wl-paste`
     fi
@@ -42,8 +39,14 @@ add_new_bookmark() {
     fi
 
     if [[ -z $key ]]; then
-        key=`kdialog --title BookMarkIt --inputbox "Give a name to the URL"`
+        if ! key=`kdialog --title BookMarkIt --inputbox "Give a name to the URL"`; then
+            exit 0
+        fi
     fi
+
+    # replace spaces with underscore for the key
+    key="${key// /_}"
+
     title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
     yq --inplace ".bookmarks += [{\"key\": \"${key}\", \"link\": \"${url}\"}]" "${BOOKMARKS}"
     $NOTIFY "$key stored in Bookmark"

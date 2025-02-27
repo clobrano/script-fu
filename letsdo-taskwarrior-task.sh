@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-set -x
+#set -x
 # description is a task description in the form of "<some random description> [hash]"
 # if [hash] is present, this script is expected to look for a corresponding task and start
 # a letsdo activity using its description and project. Otherwise, it will start a
@@ -34,6 +34,9 @@ for ctx in "wk" "me"; do
             ld_tags=""
 
             for tw_tag in ${tw_tags}; do
+                if [ "$tw_tags" == "meeting" ]; then
+                    continue
+                fi
                 ld_tags+="#$tw_tag "
             done
         fi
