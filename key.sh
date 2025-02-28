@@ -4,6 +4,10 @@ set -o pipefail
 ENCRIPTED_FILE=$1
 ACCOUNT=$2
 
+if ! command -v ykman >/dev/null; then
+    sudo dnf install -y yubikey-manager || exit 1
+fi
+
 VALUE=$(kdialog --title "Password" --password "Input Yubikey password" | ykman oath accounts code $ACCOUNT | awk '{print $3}')
 rc=$?
 if [ $rc -ne 0 ]; then
