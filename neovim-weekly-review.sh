@@ -52,10 +52,17 @@ positive_notes() {
     fi
 }
 
-learnittoday() {
+negative_notes() {
     local path=$1
     if [ -f "$path" ]; then
-        grep -E '^.. #til' "$path"
+        grep -E '^\.- ' "$path"
+    fi
+}
+
+count_learnittoday() {
+    local path=$1
+    if [ -f "$path" ]; then
+        grep -c -E '^.. #til' "$path"
     fi
 }
 
@@ -125,25 +132,20 @@ echo ""
 echo ""
 } > "$WEEKLY_PATH"
 
+# Weekly readitlater
 {
-# Weekly goals
-echo "## Week goals"
-task weekly_goals
+readitlater-report.py "$week_no" "$year"
 echo ""
 echo "---"
 echo ""
-} >> "$WEEKLY_PATH"
-
-# Weekly readitlater
-readitlater-report.py >>  "$WEEKLY_PATH"
-echo ""
-
+} >>  "$WEEKLY_PATH"
 
 # Weekly review
 
 week_notes=0
 week_notes_pos=0
 week_notes_neg=0
+week_notes_til=0
 
 current=$start_date_sec
 while [ "$current" -le "$end_date_sec" ]; do
@@ -152,24 +154,27 @@ while [ "$current" -le "$end_date_sec" ]; do
     normal=$(count_notes "$NOTE_PATH/$day.md")
     pos=$(count_positive_notes "$NOTE_PATH/$day.md")
     neg=$(count_negative_notes "$NOTE_PATH/$day.md")
+    til=$(count_learnittoday "$NOTE_PATH/$day.md")
 
     all=$((normal + pos + neg))
     week_notes=$((week_notes + all))
     week_notes_pos=$((week_notes_pos + pos))
     week_notes_neg=$((week_notes_neg + neg))
+    week_notes_til=$((week_notes_til + til))
     echo "" >> "$WEEKLY_PATH"
-    echo [["$day"]]: "$all" notes, "$pos"+, "$neg"- >> "$WEEKLY_PATH"
+    echo [["$day"]]: "$all" notes, "pos:$pos", "neg:$neg", "til:$til" >> "$WEEKLY_PATH"
     if [ "$pos" -gt 0 ]; then
         positive_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
+        negative_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
     fi
-    learnittoday "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
+
     key_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
     current=$((current + ONE_DAY_IN_SECONDS))
 done
 
 
 echo "" >> "$WEEKLY_PATH"
-echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives" | tee -a "$WEEKLY_PATH"
+echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_neg negatives, $week_notes_til til " | tee -a "$WEEKLY_PATH"
 echo ""; echo "" >> "$WEEKLY_PATH"
 
 
