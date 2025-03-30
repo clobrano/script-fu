@@ -18,6 +18,7 @@ if [ "$count" -gt 0 ]; then
         $WARNING "could not notify tasks"
     else
         $NOTIFY "$out"
+        ntfy-send.sh --message "$out" --channel "$TASKWARRIOR_CHANNEL"
         ntfy-send.sh "$out"
     fi
 fi
@@ -35,6 +36,6 @@ if [ "$count" -gt 0 ]; then
         $WARNING "could not notify tasks: error $?"
     else
         $NOTIFY "$out"
-        ntfy-send.sh "$out"
+        ntfy-send.sh --message "$out" --channel "$TASKWARRIOR_CHANNEL"
     fi
 fi

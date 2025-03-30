@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-#myremind -g
+
+if ! command -v calcurse 2>/dev/null; then
+    sudo dnf install -y calcurse
+fi
+
 date
 calcurse -a | raffaello -r "[0-9]+:[0-9]+=>blue"
 

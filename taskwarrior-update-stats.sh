@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 # Use default taskwarrior binary if not set externally
-set -e
+#set -ex
 if ! command -v task >/dev/null; then
     exit 0
 fi

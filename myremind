@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
+if ! command -v remind 2>/dev/null; then
+    echo "Installing remind"
+    sudo dnf install -y remind
+fi
+
 REM_FILE="$HOME/Me/Notes/1-Projects/IdealWeekPlanner/ideal-week.rem"
 remind "$@" "$REM_FILE"

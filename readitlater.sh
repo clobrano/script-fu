@@ -6,12 +6,6 @@ set -x
 ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode.org_archive")
 
-command -v yt-dlp >/dev/null
-if [ $? -ne 0 ]; then
-    $WARNING "yt-dlp is missing."
-    exit 0
-fi
-
 # Default notification system is stdout
 NOTIFY="echo"
 WARNING="echo [!]"

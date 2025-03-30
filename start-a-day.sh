@@ -23,11 +23,8 @@ if ! command -v ${TASK} >/dev/null; then
     exit 0
 fi
 
-echo "## NEXT (overdue/today/high/active)"
-${TASK} "+OVERDUE or +TODAY or priority:H or +ACTIVE -COMPLETE" | raffaello -r "-=>red"
-
 echo "## THIS WEEK"
-${TASK} +PENDING due.after:sow due.before:eow | raffaello -r "-=>red"
+${TASK} weekly_goals
 
 echo ""
 myagenda
