@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # -*- coding: UTF-8 -*-
 : "${ME:=$HOME/Me}"
 TAGS="fit rel dty fun skill fin give"
@@ -199,7 +200,6 @@ echo "" >> "$WEEKLY_PATH"
 echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_til til " | tee -a "$WEEKLY_PATH"
 echo ""; echo "" >> "$WEEKLY_PATH"
 
-set -x
 echo "${overall_tagged_notes[*]}"
 for tag in "${overall_tagged_notes[@]}"; do
     count=${overall_tagged_notes["$tag"]}
