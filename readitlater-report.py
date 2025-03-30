@@ -34,7 +34,10 @@ def main(week: int, year: int, input_file:Path):
     # today = datetime.today()
     monday = get_monday_of_week(week, year)
     sunday = get_sunday_from_monday(monday)
-    print(f"## Readitlater from {monday.strftime("%Y-%m-%d")} to {sunday.strftime("%Y-%m-%d")}\n")
+    monday_str = monday.strftime("%Y-%m-%d")
+    sunday_str = sunday.strftime("%Y-%m-%d")
+    week_no_str = monday.strftime("%V")
+    print(f"## Readitlater W{week_no_str} from {monday_str} to {sunday_str}\n")
     if not input_file.exists():
         print(f"could not find {input_file}")
         return
