@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 : "${ME:="$HOME/Me"}"
 
-set -x
 ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode.org_archive")
 
@@ -10,7 +9,7 @@ ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode
 NOTIFY="echo"
 WARNING="echo [!]"
 
-command -v termux-setup-storage > /dev/null
+command -v termux-notification > /dev/null
 if [ $? -eq 0 ]; then
     NOTIFY="termux-notification --content"
     WARNING="termux-notification --content"
@@ -40,6 +39,23 @@ get_tags() {
         return 0
     fi
     echo ""
+}
+
+get_video_data() {
+    local url="$1"
+    local html=$(curl -sL "$url")
+
+    local title=$(echo "$html" | grep -oP '(?<=<title>)(.*?)(?=</title>)' | sed 's/ - YouTube$//' | head -n1)
+    local duration=$(echo "$html" | grep -oP '"lengthSeconds":"\K\d+' | head -n1)
+
+
+    # Optional: convert seconds to mm:ss
+    local min=0
+    if [[ -n "$duration" ]]; then
+        min=$((duration / 60))
+    fi
+
+    echo "$min,$title"
 }
 
 get_video_data_fallback() {
@@ -112,16 +128,15 @@ process_youtube() {
         return 0
     fi
 
-    values=$(get_video_data_fallback)
+    custom_tags=$(get_tags)
 
-    custom_tags=$(echo "$values" | cut -d"," -f1 | tr -d ' ')
+    data=$(get_video_data "$url")
+    duration_minutes=$(echo "$data" | cut -d"," -f1 | tr -d ' ')
+    duration=$((duration_minutes * 60))
 
-    title=$(echo "$values" | cut -d"," -f2)
+    title=$(echo "$data" | cut -d"," -f2)
     # remove trailing white spaces
     title=$(echo $title)
-
-    duration_minutes=$(echo "$values" | cut -d"," -f3 | tr -d ' ')
-    duration=$((duration_minutes * 60))
 
     if [ -z "$title" ] || [ -z "$duration" ]; then
         $WARNING "Could not process link: missing title or duration"
