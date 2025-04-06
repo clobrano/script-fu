@@ -47,7 +47,7 @@ get_video_data() {
 
     local title=$(echo "$html" | grep -oP '(?<=<title>)(.*?)(?=</title>)' | sed 's/ - YouTube$//' | head -n1)
     local duration=$(echo "$html" | grep -oP '"lengthSeconds":"\K\d+' | head -n1)
-
+    local author=$(echo "$html" | grep -oP '(?<="ownerChannelName":")[^"]+')
 
     # Optional: convert seconds to mm:ss
     local min=0
@@ -55,7 +55,7 @@ get_video_data() {
         min=$((duration / 60))
     fi
 
-    echo "$min,$title"
+    echo "$min,$title $author"
 }
 
 get_video_data_fallback() {
