@@ -49,9 +49,12 @@ def main(week: int, year: int, input_file:Path):
             continue
         closed = node.closed.start
         if monday <= closed <= sunday:
-            headline = f"* {node.heading} - {node.tags}"
+            tags = [ tag.upper() for tag in node.tags if tag not in ["short", "mid", "long", "video", "reading"] ]
+            tags = ':'.join(tags)
+            headline = f"* {node.heading} - {tags}"
             print(headline)
-
+            if node.properties["COMMENT"]:
+                print(f"  * {node.properties["COMMENT"]}")
 
 if __name__ == "__main__":
     today = datetime.today()
