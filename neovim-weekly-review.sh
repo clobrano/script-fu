@@ -70,7 +70,7 @@ count_tagged_notes() {
     fi
 
     for tag in $TAGS; do
-        count=$(grep -c "#${tag}" "$path")
+        count=$(grep -c "+${tag}" "$path")
         overall_tagged_notes[$tag]="$count"
         echo -n "${tag^^}:$count, "
     done
@@ -86,7 +86,7 @@ count_tagged_notes_overall() {
     fi
 
     for tag in $TAGS; do
-        count=$(grep -c "#${tag}" "$path")
+        count=$(grep -c "+${tag}" "$path")
         overall_tagged_notes[$tag]="$count"
         echo -n "${tag^^}:$count, "
     done
@@ -197,14 +197,12 @@ for tag in "${overall_tagged_notes[@]}"; do
     count=${overall_tagged_notes["$tag"]}
     echo -n "${tag^^}:$count, "
 done
-echo >> "$WEEKLY_PATH"
-echo "---" >> "$WEEKLY_PATH"
-echo >> "$WEEKLY_PATH"
+echo ; echo "---"; echo >> "$WEEKLY_PATH"
 
 # Weekly readitlater
 {
 if command -v termux-setup-storage > /dev/null; then
-    python $HOME/workspace/script-fu/readitlater-report.py "$week_no" "$year"
+    python "$HOME"/workspace/script-fu/readitlater-report.py "$week_no" "$year"
 else
     readitlater-report.py "$week_no" "$year"
 fi
