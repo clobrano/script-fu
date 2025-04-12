@@ -150,26 +150,20 @@ done
 # Just logging
 echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in Week:$(basename $WEEKLY_PATH) and Month:$FILE_NAME files"
 
-# Here start write the file from scratch (note the override ">" at the end of section)
-{
+# -------------------------------------------------------------------------------------------------
+# Here start writing the file from scratch (note the override ">" at the end of this first section)
+# -------------------------------------------------------------------------------------------------
+
 # Weekly note header
+{
 echo "# Week $(date -d @"$start_date_sec" +%V) ($(date -d @"$start_date_sec" +%F) - $(date -d @"$end_date_sec" +%F)) review"
-echo ""
-echo ""
+echo
 } > "$WEEKLY_PATH"
 
-# Weekly readitlater
-{
-readitlater-report.py "$week_no" "$year"
-echo ""
-echo "---"
-echo ""
-} >>  "$WEEKLY_PATH"
-
 # Weekly review
-
+{
+echo "## Daily notes"
 week_notes=0
-week_notes_pos=0
 week_notes_til=0
 
 current=$start_date_sec
@@ -183,27 +177,37 @@ while [ "$current" -le "$end_date_sec" ]; do
 
     all=$((normal + pos))
     week_notes=$((week_notes + all))
-    week_notes_pos=$((week_notes_pos + pos))
     week_notes_til=$((week_notes_til + til))
-    echo "" >> "$WEEKLY_PATH"
-    echo "[[$day]]: $all notes, POS:$pos, $tagged " >> "$WEEKLY_PATH"
+    echo
+    echo "[[$day]]: $all notes, POS:$pos, $tagged "
     if [ "$pos" -gt 0 ]; then
-        positive_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
+        positive_notes "$NOTE_PATH/$day.md"
     fi
 
-    key_notes "$NOTE_PATH/$day.md" >> "$WEEKLY_PATH"
+    key_notes "$NOTE_PATH/$day.md"
     current=$((current + ONE_DAY_IN_SECONDS))
 done
+echo
+} >> "$WEEKLY_PATH" 
 
-
-echo "" >> "$WEEKLY_PATH"
-echo "Overall: $week_notes notes, $week_notes_pos positives, $week_notes_til til " | tee -a "$WEEKLY_PATH"
-echo ""; echo "" >> "$WEEKLY_PATH"
-
+# I want this in the weekly note AND visible when generating the report
+echo "Overall: $week_notes notes, $week_notes_til til " | tee -a "$WEEKLY_PATH"
 echo "${overall_tagged_notes[*]}"
 for tag in "${overall_tagged_notes[@]}"; do
     count=${overall_tagged_notes["$tag"]}
     echo -n "${tag^^}:$count, "
 done
+echo >> "$WEEKLY_PATH"
+echo "---" >> "$WEEKLY_PATH"
+echo >> "$WEEKLY_PATH"
+
+# Weekly readitlater
+{
+if command -v termux-setup-storage > /dev/null; then
+    python $HOME/workspace/script-fu/readitlater-report.py "$week_no" "$year"
+else
+    readitlater-report.py "$week_no" "$year"
+fi
+} >>  "$WEEKLY_PATH"
 
 
