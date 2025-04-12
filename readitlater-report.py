@@ -7,6 +7,7 @@ import argparse
 from datetime import datetime, timedelta
 from orgparse import load
 
+
 def get_monday_of_week(week: int, year: int) -> datetime:
     monday = datetime.fromisocalendar(year, week, 1)  # 1 = Monday
     return monday.replace(hour=0, minute=0, second=0)
@@ -54,7 +55,9 @@ def main(week: int, year: int, input_file:Path):
             headline = f"* {node.heading} - {tags}"
             print(headline)
             if node.properties["COMMENT"]:
-                print(f"  * {node.properties["COMMENT"]}")
+                comment = node.properties["COMMENT"]
+                print(f"  - {comment}")
+
 
 if __name__ == "__main__":
     today = datetime.today()
