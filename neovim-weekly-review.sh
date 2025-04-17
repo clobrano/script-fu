@@ -197,7 +197,10 @@ for tag in "${overall_tagged_notes[@]}"; do
     count=${overall_tagged_notes["$tag"]}
     echo -n "${tag^^}:$count, "
 done
-echo ; echo "---"; echo >> "$WEEKLY_PATH"
+{
+
+echo ; echo "---"; echo ; echo
+} >> "$WEEKLY_PATH"
 
 # Weekly readitlater
 {

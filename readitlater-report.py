@@ -6,6 +6,7 @@ from pathlib import Path
 import argparse
 from datetime import datetime, timedelta
 from orgparse import load
+from typing import List
 
 
 def get_monday_of_week(week: int, year: int) -> datetime:
@@ -31,7 +32,7 @@ def get_sunday_from_date_in_same_week(date: datetime) -> datetime:
     return sunday.replace(hour=23, minute=59, second=59)
 
 
-def main(week: int, year: int, input_file:Path):
+def main(week: int, year: int, input_files:List[Path]):
     # today = datetime.today()
     monday = get_monday_of_week(week, year)
     sunday = get_sunday_from_monday(monday)
@@ -39,24 +40,25 @@ def main(week: int, year: int, input_file:Path):
     sunday_str = sunday.strftime("%Y-%m-%d")
     week_no_str = monday.strftime("%V")
     print(f"## Readitlater W{week_no_str} from {monday_str} to {sunday_str}\n")
-    if not input_file.exists():
-        print(f"could not find {input_file}")
-        return
+    for input_file in input_files:
+        if not input_file.exists():
+            print(f"could not find {input_file}")
+            return
 
-    root = load(input_file.resolve())
+        root = load(input_file.resolve())
 
-    for node in root[1:]:
-        if node.todo != "DONE":
-            continue
-        closed = node.closed.start
-        if monday <= closed <= sunday:
-            tags = [ tag.upper() for tag in node.tags if tag not in ["short", "mid", "long", "video", "reading"] ]
-            tags = ':'.join(tags)
-            headline = f"* {node.heading} - {tags}"
-            print(headline)
-            if node.properties.get("COMMENT", None):
-                comment = node.properties["COMMENT"]
-                print(f"  - {comment}")
+        for node in root[1:]:
+            if node.todo != "DONE":
+                continue
+            closed = node.closed.start
+            if monday <= closed <= sunday:
+                tags = [ tag.upper() for tag in node.tags if tag not in ["short", "mid", "long", "video", "reading"] ]
+                tags = ':'.join(tags)
+                headline = f"* {node.heading} - {tags}"
+                print(headline)
+                if node.properties.get("COMMENT", None):
+                    comment = node.properties["COMMENT"]
+                    print(f"  - {comment}")
 
 
 if __name__ == "__main__":
@@ -70,8 +72,11 @@ if __name__ == "__main__":
     ME = os.getenv("ME")
     if not ME:
         ME = os.path.expanduser(os.path.join("~", "Me"))
-    input_file = Path(os.path.join(ME, "Orgmode", "ReadItLater.org"))
+    input_files = [
+        Path(os.path.join(ME, "Orgmode", "ReadItLater.org")),
+        Path(os.path.join(ME, "Orgmode", "ReadItLater_archive.org"))
+    ]
 
-    main(args.week, args.year, input_file)
+    main(args.week, args.year, input_files)
 
 
