@@ -22,23 +22,24 @@ else
 fi
 
 get_tags() {
-    command -v kdialog >/dev/null
-    if [[ $? -eq 0 ]]; then
-        TAG=`kdialog --title ReadItLater --inputbox "Tags (separated by \":\")"`
-        echo "$TAG:"
-        return 0
-    fi
-    command -v termux-setup-storage >/dev/null
-    if [[ $? -eq 0 ]]; then
-        TAG=`termux-dialog text -t "ReadItLater" -i "Tags separated by \":\"" | jq -r .text`
-        if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
-            echo ""
-        else
-            echo "$TAG:"
+    if command -v termux-setup-storage >/dev/null; then
+        if ! TAG=$(termux-dialog text -t "ReadItLater" -i "Tags separated by \":\"" | jq -r .text); then
+            return 1
         fi
-        return 0
+    elif command -v kdialog >/dev/null; then
+        if ! TAG=$(kdialog --title ReadItLater --inputbox "Tags (separated by \":\")"); then
+            return 1
+        fi
+    else
+        return 1
     fi
-    echo ""
+
+    if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
+        echo ""
+        return 1
+    fi
+    echo "$TAG:"
+    return 0
 }
 
 get_video_data() {
@@ -128,7 +129,9 @@ process_youtube() {
         return 0
     fi
 
-    custom_tags=$(get_tags)
+    if ! custom_tags=$(get_tags); then
+        return $?
+    fi
 
     data=$(get_video_data "$url")
     duration_minutes=$(echo "$data" | cut -d"," -f1 | tr -d ' ')
@@ -192,7 +195,9 @@ process_webpage() {
         return 0
     fi
 
-    custom_tags=`get_tags`
+    if ! custom_tags=$(get_tags); then
+        return 1
+    fi
 
     title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
     content=$(curl -sL "$url" | html2text)
