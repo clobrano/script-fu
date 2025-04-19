@@ -9,16 +9,13 @@ ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode
 NOTIFY="echo"
 WARNING="echo [!]"
 
-command -v termux-notification > /dev/null
-if [ $? -eq 0 ]; then
+
+if command -v termux-notification > /dev/null; then
     NOTIFY="termux-notification --content"
     WARNING="termux-notification --content"
-else
-    command -v notify-send >/dev/null
-    if [ $? -eq 0 ]; then
+elif command -v notify-send >/dev/null; then
         NOTIFY="notify-send --app-name ReadItLater -i dialog-information"
         WARNING="notify-send --app-name ReadItLater -i dialog-information"
-    fi
 fi
 
 get_tags() {
@@ -47,11 +44,12 @@ get_tags() {
 
 get_video_data() {
     local url="$1"
-    local html=$(curl -sL "$url")
+    local html title duration author
 
-    local title=$(echo "$html" | grep -oP '(?<=<title>)(.*?)(?=</title>)' | sed 's/ - YouTube$//' | head -n1)
-    local duration=$(echo "$html" | grep -oP '"lengthSeconds":"\K\d+' | head -n1)
-    local author=$(echo "$html" | grep -oP '(?<="ownerChannelName":")[^"]+')
+    html=$(curl -sL "$url")
+    title=$(echo "$html" | grep -oP '(?<=<title>)(.*?)(?=</title>)' | sed 's/ - YouTube$//' | head -n1)
+    duration=$(echo "$html" | grep -oP '"lengthSeconds":"\K\d+' | head -n1)
+    author=$(echo "$html" | grep -oP '(?<="ownerChannelName":")[^"]+')
 
     # Optional: convert seconds to mm:ss
     local min=0
@@ -64,14 +62,13 @@ get_video_data() {
 
 check_duplicate() {
     local url=$1
-    grep "$url" ${ORG_FILEPATH} >/dev/null
-    if [ $? -eq 0 ]; then
+
+    if grep "$url" "$ORG_FILEPATH" >/dev/null; then
         $WARNING "Already in ReadItLater"
         return 1
     fi
     for archive in "${ORG_ARCHIVE_FILEPATH[@]}"; do
-        grep "$url" $archive >/dev/null
-        if [ $? -eq 0 ]; then
+        if grep "$url" "$archive" >/dev/null; then
             $WARNING "Already in ReadItLater Archive"
             return 1
         fi
@@ -118,7 +115,8 @@ process_youtube() {
 
     title=$(echo "$data" | cut -d"," -f2)
     # remove trailing white spaces
-    title=$(echo $title)
+    #title=$(echo "$title")
+    title="${title% }"
 
     if [ -z "$title" ] || [ -z "$duration" ]; then
         $WARNING "Could not process link: missing title or duration"
@@ -143,7 +141,7 @@ process_youtube() {
         fi
     fi
 
-    creation_date=`date +%F`
+    creation_date=$(date +%F)
 
     all_tags=":$duration_tag:video:$custom_tags"
 
@@ -152,7 +150,7 @@ process_youtube() {
     title=${title//\-}
 
 
-    cat << EOF >> ${ORG_FILEPATH}
+    cat << EOF >> "$ORG_FILEPATH"
 * TODO $title $all_tags
   :PROPERTIES:
   :CREATED: ${creation_date}
@@ -183,12 +181,12 @@ process_webpage() {
     reading_info=$(calculate_reading_time "$content")
     reading_time=$(echo "$reading_info" | awk '{print $1}')
     duration_tag=$(echo "$reading_info" | awk '{print $2}')
-    creation_date=`date +%F`
+    creation_date=$(date +%F)
 
 
     all_tags=":$duration_tag:reading:$custom_tags"
 
-    cat << EOF >> ${ORG_FILEPATH}
+    cat << EOF >> "$ORG_FILEPATH"
 * TODO $title $all_tags
   :PROPERTIES:
   :CREATED: ${creation_date}
@@ -202,12 +200,12 @@ EOF
 }
 
 # Main script logic
-if [ ! -f ${ORG_FILEPATH} ]; then
+if [ ! -f "$ORG_FILEPATH" ]; then
     $WARNING "Could not find :$ORG_FILEPATH:"
     exit 1
 fi
 if [[ $# -eq 0 ]]; then
-    url=`wl-paste`
+    url=$(wl-paste)
 else
     url=$1
 fi
