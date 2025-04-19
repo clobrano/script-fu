@@ -31,11 +31,14 @@ get_tags() {
             return 1
         fi
     else
+        echo ""
         return 1
     fi
 
-    if [[ -z $TAG ]] || [[ $TAG == "" ]]; then
-        echo ""
+    # strip trailing space
+    TAG="${TAG% }"
+
+    if [ -z "$TAG" ] || [ "$TAG" == "" ]; then
         return 1
     fi
     echo "$TAG:"
@@ -58,30 +61,6 @@ get_video_data() {
 
     echo "$min,$title $author"
 }
-
-get_video_data_fallback() {
-    command -v kdialog >/dev/null
-    if [[ $? -eq 0 ]]; then
-        DATA=$(kdialog --title ReadItLater --inputbox "tags, description and duration (comma separated)")
-        if [ $? -eq 0 ] && [ -n "$DATA" ]; then
-            echo "$DATA"
-            return 0
-        fi
-        return 1
-    fi
-    command -v termux-setup-storage >/dev/null
-    if [[ $? -eq 0 ]]; then
-        DATA=$(termux-dialog text -t "ReadItLater" -i "tags, description and duration (comma separated)" | jq -r .text)
-        if [ $? -eq 0 ] && [ -n "$DATA" ]; then
-            echo "$DATA"
-            return 0
-        fi
-        return 1
-    fi
-    echo ""
-    return 1
-}
-
 
 check_duplicate() {
     local url=$1
@@ -120,9 +99,9 @@ calculate_reading_time() {
 
 # Function to process a YouTube URL and categorize it
 process_youtube() {
-    raw_url=$1
+    local raw_url=$1
     # remove GET arguments from url (e.g. t=Xs)
-    url=$(echo $url | cut -d'&' -f1)
+    url=$(echo "$raw_url" | cut -d'&' -f1)
 
     check_duplicate "$url"
     if [ $? -eq 1 ]; then
