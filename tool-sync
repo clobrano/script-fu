@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+
+set -x
+pushd "$HOME/workspace/script-fu" || exit 1
+git pull
+popd || exit 1
