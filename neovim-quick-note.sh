@@ -6,25 +6,24 @@ description=$*
 # Default notification system is stdout
 WARNING="echo [!]"
 
+command -v termux-setup-storage >/dev/null 2>&1
+in_termux=$?
+
 if command -v notify-send > /dev/null; then
     WARNING="notify-send --app-name QuickNote -i dialog-warning"
 fi
 
 
-if command -v termux-setup-storage > /dev/null; then
+if [ "$in_termux" -eq 0 ]; then
     ME=$HOME/storage/documents/Me
     WARNING="termux-notification --content"
 fi
 
 if [ -z "$description" ]; then
-    if command -v kdialog > /dev/null; then
-        description=$(kdialog --geometry 600x100+200+200 \
-            --title QuickNote \
-            --textinputbox "What are you thinking?")
-    fi
-
-    if command -v termux-setup-storage > /dev/null; then
+    if [ "$in_termux" -eq 0 ]; then
         description=$(termux-dialog text -m -t "What are you thinking?" -i "I conquered the world today" | jq -r .text)
+    else
+        description=$(kdialog --geometry 600x100+200+200 --title QuickNote --textinputbox "What are you thinking?")
     fi
 fi
 
@@ -61,4 +60,8 @@ fi
 echo ""; LC_TIME=C date +"%H:%M" >> "$noteFilename"
 echo "$description" >> "$noteFilename"
 
-neovim-weekly-review.sh
+if [ "$in_termux" -eq 0 ]; then
+    "$HOME"/workspace/script/neovim-weekly-review.sh
+else
+    neovim-weekly-review.sh
+fi
