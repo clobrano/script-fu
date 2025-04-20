@@ -1,32 +1,30 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 : "${ME:=$HOME/Me}"
-description=$@
+description=$*
 
 # Default notification system is stdout
 WARNING="echo [!]"
-command -v notify-send > /dev/null
-if [ $? -eq 0 ]; then
+
+if command -v notify-send > /dev/null; then
     WARNING="notify-send --app-name QuickNote -i dialog-warning"
 fi
 
-command -v termux-setup-storage > /dev/null
-if [ $? -eq 0 ]; then
+
+if command -v termux-setup-storage > /dev/null; then
     ME=$HOME/storage/documents/Me
     WARNING="termux-notification --content"
 fi
 
 if [ -z "$description" ]; then
-    command -v kdialog > /dev/null
-    if [ $? -eq 0 ]; then
+    if command -v kdialog > /dev/null; then
         description=$(kdialog --geometry 600x100+200+200 \
             --title QuickNote \
             --textinputbox "What are you thinking?")
     fi
 
-    command -v termux-setup-storage > /dev/null
-    if [ $? -eq 0 ]; then
-        description=`termux-dialog text -t "What are you thinking?" -i "I conquered the world today" | jq -r .text`
+    if command -v termux-setup-storage > /dev/null; then
+        description=$(termux-dialog text -m -t "What are you thinking?" -i "I conquered the world today" | jq -r .text)
     fi
 fi
 
@@ -47,11 +45,11 @@ if [[ ! -f "$noteFilename" ]]; then
     # . year: [[1 year ago link]]
     cat << EOF > "$noteFilename"
 Last:
-. week: [[`date -d "last week" +%Y-%m-%d`]]
-. month: [[`date -d "last month" +%Y-%m-%d`]]
-. year: [[`date -d "last year" +%Y-%m-%d`]]
+. week: [[$(date -d "last week" +%Y-%m-%d)]]
+. month: [[$(date -d "last month" +%Y-%m-%d)]]
+. year: [[$(date -d "last year" +%Y-%m-%d]]
 
-## `LC_TIME=C date +"%d %a"`
+)## $(LC_TIME=C date +"%d %a")
 EOF
 fi
 rc=$?
@@ -60,21 +58,7 @@ if [ $rc -ne 0 ]; then
     exit 1
 fi
 
-echo "" >> "$noteFilename"
-echo `LC_TIME=C date +"%H:%M"` >> "$noteFilename"
-echo $description >> "$noteFilename"
-rc=$?
-if [ $rc -ne 0 ]; then
-    $WARNING "could not update note: error $rc"
-    exit 1
-fi
+echo ""; LC_TIME=C date +"%H:%M" >> "$noteFilename"
+echo "$description" >> "$noteFilename"
 
-if ! command -v termux-setup-storage > /dev/null; then
-    curr_dir=$(dirname $0)
-    set -x
-    out=$("$curr_dir"/neovim-weekly-review.sh)
-    rc=$?
-    if [ $rc -ne 0 ]; then
-        $WARNING "weekly review failed: $out (error: $rc)"
-    fi
-fi
+neovim-weekly-review.sh
