@@ -25,7 +25,7 @@ count_notes() {
     if [ ! -f "$path" ]; then
         echo 0
     else
-        grep -c -E '^\.\. ' "$path"
+        grep -c '^[\*\+-]' "$path"
     fi
 }
 
@@ -34,30 +34,21 @@ count_positive_notes() {
     if [ ! -f "$path" ]; then
         echo 0
     else
-        grep -c -E '^\.\+ ' "$path"
-    fi
-}
-
-count_negative_notes() {
-    local path=$1
-    if [ ! -f "$path" ]; then
-        echo 0
-    else
-        grep -c -E '^\.- ' "$path"
+        grep -c '^+' "$path"
     fi
 }
 
 positive_notes() {
     local path=$1
     if [ -f "$path" ]; then
-        grep -E '^\.\+ ' "$path"
+        grep '^+ ' "$path"
     fi
 }
 
 count_learnittoday() {
     local path=$1
     if [ -f "$path" ]; then
-        grep -c -E '^.. #til' "$path"
+        grep -c '^[\*\+-] #til' "$path"
     fi
 }
 
@@ -197,10 +188,7 @@ for tag in "${overall_tagged_notes[@]}"; do
     count=${overall_tagged_notes["$tag"]}
     echo -n "${tag^^}:$count, "
 done
-{
-
-echo ; echo "---"; echo ; echo
-} >> "$WEEKLY_PATH"
+echo -e "\n---\n\n" >> "$WEEKLY_PATH"
 
 # Weekly readitlater
 {
