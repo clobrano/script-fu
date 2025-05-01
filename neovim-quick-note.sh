@@ -21,7 +21,7 @@ fi
 
 if [ -z "$description" ]; then
     if [ "$in_termux" -eq 0 ]; then
-        description=$(termux-dialog text -m -t "What are you thinking?" -i "I conquered the world today" | jq -r .text)
+        description=$(termux-dialog text -m -t "What are you thinking?" | jq -r .text)
     else
         description=$(kdialog --geometry 600x100+200+200 --title QuickNote --textinputbox "What are you thinking?")
     fi
@@ -32,6 +32,15 @@ if [ -z "$description" ]; then
     echo "No description"
     exit 0
 fi
+
+# add initial outline mark if it doesn't exist already
+set -x
+if [ "* $description" != "$description" ] || 
+    [ "+ $description" != "$description" ] ||
+    [ "- $description" != "$description" ]; then
+    description="* $description"
+fi
+set +x
 
 noteDirectory="$ME/Notes"
 noteFilename="${noteDirectory}/Journal/$(date +%Y-%m-%d.md)"
@@ -57,8 +66,13 @@ if [ $rc -ne 0 ]; then
     exit 1
 fi
 
-echo ""; LC_TIME=C date +"%H:%M" >> "$noteFilename"
-echo "$description" >> "$noteFilename"
+{
+    echo -e "\n"
+    LC_TIME=C date +"%H:%M"
+    echo "$description"
+    echo
+} >> "$noteFilename"
+
 
 if [ "$in_termux" -eq 0 ]; then
     "$HOME"/workspace/script/neovim-weekly-review.sh
