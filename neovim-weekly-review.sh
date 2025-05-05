@@ -127,19 +127,22 @@ FILE_NAME="$(date +%Y)-$(date +%m).md"
 echo "# $(date +'%Y %B') review"
 
 for day in $(seq -w 1 31); do
-    out=$(grep "#weeklyreview" "$NOTE_PATH/$(date +%Y)-$(date +%m)-$day.md" 2>/dev/null)
-    if [ $? -eq 0 ]; then
-        dd="$(date +%Y)-$(date +%m)-$day"
-        echo ""
-        echo "[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)"
-        echo "$out" | awk -F"weeklyreview" '{print $2}'
+    file="$NOTE_PATH/$(date +%Y)-$(date +%m)-$day.md"
+    if [ -f "$file" ]; then
+        if out=$(sed -n '/#weeklyreview/,/^[^#]+/p' "$file"); then
+            if [ -n "$out" ]; then
+                dd="$(date +%Y)-$(date +%m)-$day"
+                echo -e "\n[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)"
+                echo "$out"
+            fi
+        fi
     fi
 done
 
 } >  "$NOTE_PATH/$(date +%Y)-$(date +%m).md"
 
 # Just logging
-echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in Week:$(basename $WEEKLY_PATH) and Month:$FILE_NAME files"
+echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in Week:$(basename "$WEEKLY_PATH") and Month:$FILE_NAME files"
 
 # -------------------------------------------------------------------------------------------------
 # Here start writing the file from scratch (note the override ">" at the end of this first section)
