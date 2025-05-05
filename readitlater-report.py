@@ -54,7 +54,7 @@ def main(week: int, year: int, input_files:List[Path]):
             if monday <= closed <= sunday:
                 tags = [ tag.upper() for tag in node.tags if tag not in ["short", "mid", "long", "video", "reading"] ]
                 tags = ':'.join(tags)
-                headline = f"* {node.heading} - {tags}"
+                headline = f"### {node.heading} - {tags}"
                 print(headline)
                 if node.properties.get("COMMENT", None):
                     comment = node.properties["COMMENT"]
