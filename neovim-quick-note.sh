@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+set -x
 : "${ME:=$HOME/Me}"
 description=$*
 
@@ -55,9 +56,10 @@ if [[ ! -f "$noteFilename" ]]; then
 Last:
 . week: [[$(date -d "last week" +%Y-%m-%d)]]
 . month: [[$(date -d "last month" +%Y-%m-%d)]]
-. year: [[$(date -d "last year" +%Y-%m-%d]]
+. year: [[$(date -d "last year" +%Y-%m-%d)]]
 
-)## $(LC_TIME=C date +"%d %a")
+
+## $(LC_TIME=C date +"%d %a")
 EOF
 fi
 rc=$?
