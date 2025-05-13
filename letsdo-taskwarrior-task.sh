@@ -42,7 +42,7 @@ for ctx in "wk" "me"; do
             fi
         fi
 
-        lets goto "$task_description" "$PROJECT" "$ld_tags" +"$ctx"
+        lets goto "$task_description" "$PROJECT" "$ld_tags" +"$ctx" "$hash"
         exit $?
     fi
 done
