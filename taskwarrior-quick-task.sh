@@ -29,7 +29,8 @@ else
 fi
 
 if [ -n "$description" ]; then
-    out=$(task "$CUSTOM" add "$description" +inbox)
+    # description must be without quotes, as it includes other tokens (due, project...)
+    out=$(task "$CUSTOM" add $description +inbox)
     rc=$?
     if [ $rc -eq 0 ]; then
         $NOTIFY "$out"
