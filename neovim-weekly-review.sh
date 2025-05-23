@@ -194,12 +194,6 @@ done
 echo -e "\n---\n\n" >> "$WEEKLY_PATH"
 
 # Weekly readitlater
-{
-if command -v termux-setup-storage > /dev/null; then
-    python "$HOME"/workspace/script-fu/readitlater-report.py "$week_no" "$year"
-else
-    readitlater-report.py "$week_no" "$year"
-fi
-} >>  "$WEEKLY_PATH"
+python ~/workspace/script-fu/readitlater-report.py "$week_no" "$year" >>  "$WEEKLY_PATH"
 
 
