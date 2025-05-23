@@ -35,13 +35,15 @@ if [ -z "$description" ]; then
 fi
 
 # add initial outline mark if it doesn't exist already
-set -x
-if [ "* $description" != "$description" ] || 
-    [ "+ $description" != "$description" ] ||
-    [ "- $description" != "$description" ]; then
-    description="* $description"
-fi
-set +x
+case "$description" in
+    "*"* | "+"* | "-"* )
+        # Already starts with one of the desired prefixes, do nothing
+        ;;
+    * )
+        # Does not start with any of the desired prefixes, so prepend "* "
+        description="* $description"
+        ;;
+esac
 
 noteDirectory="$ME/Notes"
 noteFilename="${noteDirectory}/Journal/$(date +%Y-%m-%d.md)"
