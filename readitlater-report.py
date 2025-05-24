@@ -56,6 +56,9 @@ def main(week: int, year: int, input_files:List[Path]):
                 tags = ':'.join(tags)
                 headline = f"### {node.heading} - {tags}"
                 print(headline)
+                if node.properties.get("URL", None):
+                    url = node.properties["URL"]
+                    print(f"  - {url}")
                 if node.properties.get("COMMENT", None):
                     comment = node.properties["COMMENT"]
                     print(f"  - {comment}")
