@@ -14,7 +14,10 @@ if rem | grep "Look at the sunset" -c >/dev/null; then
     exit 0
 fi
 
-curl "https://api.sunrise-sunset.org/json?lat=39.242901&lng=-9.195257&formatted=0" > "$API_JSON"
+if ! curl "https://api.sunrise-sunset.org/json?lat=39.242901&lng=-9.195257&formatted=0" > "$API_JSON"; then
+    $WARNING "[!] could not curl API data"
+    exit 1
+fi
 
 if STATUS=$(jq -r .status "$API_JSON"); then
     if [ "$STATUS" != "OK" ]; then
@@ -24,11 +27,7 @@ if STATUS=$(jq -r .status "$API_JSON"); then
 fi
 
 SUNSET=$(jq -r .results.sunset "$API_JSON")
-# @2025-02-07 seems that the timezone is wrong. It says UTC but,
-# but the expected sunset time looks right for CET instead.
-# For now, I'll ignore the timezone
-SUNSET=$(echo "$SUNSET" | cut -d'+' -f1)
-$INFO "Sunset attended for $(date -d "$SUNSET $TZID" +"%F %H:%M")"
+$INFO "Sunset attended for $(TZ='Europe/Rome' date -d "$SUNSET" +"%F %H:%M")"
 
 TIME=$(date -d "$SUNSET" +"%H:%M")
 rem Look at the sunset at:"$TIME"
