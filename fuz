@@ -2,75 +2,71 @@
 # -*- coding: UTF-8 -*-
 ## Fuzzy search and open file from commandline
 ## options:
-##      -e, --edit <command>    The editor to use [default: none]
 ##      -d, --directory <path>  The path where to look for files [default: .]
 ## see https://gist.github.com/BaseCase/c45299e4f8474119881d708a4b728fbf#file-fuz-sh
 
-# GENERATED_CODE: start
-# Default values
-_edit=none
-_directory=.
 
+# CLInt GENERATED_CODE: start
+# info: https://github.com/clobrano/CLInt.git
+# Default values
+_directory=.
 
 # Converting long-options into short ones
 for arg in "$@"; do
   shift
   case "$arg" in
-"--edit") set -- "$@" "-e";;
 "--directory") set -- "$@" "-d";;
   *) set -- "$@" "$arg"
   esac
 done
 
 function print_illegal() {
-    echo Unexpected flag in command line \"$@\"
+    echo "[!] Unexpected flag in command line $*"
 }
 
 # Parsing flags and arguments
-while getopts 'he:d:' OPT; do
-    case $OPT in
-        h) sed -ne 's/^## \(.*\)/\1/p' $0
+while getopts 'hd:' OPT; do
+    case "$OPT" in
+        h) sed -ne 's/^## \(.*\)/\1/p' "$0"
            exit 1 ;;
-        e) _edit=$OPTARG ;;
         d) _directory=$OPTARG ;;
-        \?) print_illegal $@ >&2;
+        \?) print_illegal "$@" >&2;
             echo "---"
-            sed -ne 's/^## \(.*\)/\1/p' $0
+            sed -ne 's/^## \(.*\)/\1/p' "$0"
             exit 1
             ;;
     esac
 done
-# GENERATED_CODE: end
+# CLInt GENERATED_CODE: end
 
 set -e
 xclip=$(which xclip)
 
 main() {
   previous_file="$1"
-  file_to_edit=`select_file $previous_file`
+  file_to_edit=$(select_file "$previous_file")
 
-  if [ -n "$file_to_edit" ] && [ "$_edit" != none ] ; then
-      "$_edit" "$file_to_edit"
-    else if [ ! -z $xclip ]; then
-      echo $file_to_edit | tr -d '\n' | xclip -selection clipboard
-      echo "$file_to_edit is available in the clipboard"
-    else
-      echo $file_to_edit
-    fi
+  if [ -n "$file_to_edit" ] && [ "$EDITOR" != none ] ; then
+      $EDITOR "$file_to_edit"
+  elif [ -n "$xclip" ]; then
+    echo "$file_to_edit" | tr -d '\n' | xclip -selection clipboard
+    echo "EDITOR is unset: $file_to_edit is available in the clipboard"
+  else
+    echo "$file_to_edit"
   fi
 }
 
 select_file() {
   given_file="$1"
-  has_bat=$(which bat | wc -l)
-  if [ $has_bat -eq 0 ]; then
-    fzf --preview="cat {}" --preview-window=right:70%:wrap --query="$given_file"
-  else
-    fzf --preview="bat {} --color=always" --preview-window=right:70%:wrap --query="$given_file"
-  fi
+  fzf \
+    --prompt "Search your file: " \
+    --preview="cat {} --color=always" \
+    --preview-window=right:70%:wrap \
+    --query="$given_file" \
+    --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | xclip -selection clipboard)+abort'
 }
 
-previousdirectory=`pwd`
+previousdirectory=$(pwd)
 cd "$_directory"
 main "$@"
 cd "$previousdirectory"
