@@ -24,7 +24,7 @@ if ! command -v ${TASK} >/dev/null; then
 fi
 
 echo "## THIS WEEK"
-${TASK} weekly_goals
+${TASK} weekly_completed
 
 echo ""
 myagenda

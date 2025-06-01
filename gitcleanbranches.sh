@@ -17,7 +17,6 @@ branches="$main $branches"
 
 echo "Branches: $branches\n\n"
 
-exit 0
 for branch in $(echo $branches)
 do
     echo "Branch: $branch"

@@ -9,8 +9,9 @@ apps[browser]="ww -fa Zen -c \"flatpak run io.github.zen_browser.zen\""
 #apps[browser]="ww -fa firefox -c firefox"
 #apps[browser]="ww -fa Chrome -c \"flatpak run com.google.Chrome\""
 
-apps[terminal]="ww -f org.wezfurlong.wezterm"
-apps[terminal2]="ww -fa alacritty -c alacritty"
+apps[terminal]="ww -f kitty -c kitty"
+apps[terminal2]="ww -f org.wezfurlong.wezterm"
+#apps[terminal2]="ww -fa alacritty -c alacritty"
 
 apps[note]="ww -fa konsole -c konsole"
 apps[slack]="ww -fa Slack -c \"flatpak run com.slack.Slack\""

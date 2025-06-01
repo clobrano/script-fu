@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if ! command -v remind 2>/dev/null; then
+if ! command -v remind > /dev/null  2>&1; then
     echo "Installing remind"
     sudo dnf install -y remind
 fi

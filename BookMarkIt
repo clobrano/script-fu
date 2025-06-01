@@ -10,13 +10,11 @@ BOOKMARKS="$HOME/Documents/bookmarks.yml"
 
 action=${1:-'find'}
 
-command -v notify-send >/dev/null
-if [ $? -eq 0 ]; then
+
+if command -v notify-send >/dev/null; then
     NOTIFY="notify-send --app-name BookMarkIt -i dialog-information"
-    WARNING="notify-send --app-name BookMarkIt -i dialog-warning"
 else
     NOTIFY="echo"
-    WARNING="echo [!]"
 fi
 
 add_new_bookmark() {
@@ -25,7 +23,7 @@ add_new_bookmark() {
     local key=$*
 
     if [[ -z $url ]]; then
-        url=`wl-paste`
+        url=$(wl-paste)
     fi
 
     if [[ ! $url =~ "http"  ]]; then

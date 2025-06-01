@@ -32,9 +32,9 @@ if [ "$count" -gt 0 ]; then
         $WARNING "could not notify tasks"
     else
         $NOTIFY "$out"
-        if [ "$ON_TERMUX" -eq 0 ]; then
-            ntfy-send.sh --message "$out" --channel "$TASKWARRIOR_CHANNEL"
-        fi
+        #if [ "$ON_TERMUX" -eq 0 ]; then
+            #ntfy-send.sh --message "$out" --channel "$TASKWARRIOR_CHANNEL"
+        #fi
     fi
 fi
 
@@ -51,8 +51,8 @@ if [ "$count" -gt 0 ]; then
         $WARNING "could not notify tasks: error $?"
     else
         $NOTIFY "$out"
-        if [ "$ON_TERMUX" -eq 0 ]; then
-            ntfy-send.sh --message "$out" --channel "$TASKWARRIOR_CHANNEL"
-        fi
+        #if [ "$ON_TERMUX" -eq 0 ]; then
+            #ntfy-send.sh --message "$out" --channel "$TASKWARRIOR_CHANNEL"
+        #fi
     fi
 fi

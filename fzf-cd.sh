@@ -27,8 +27,7 @@ pushd "$TARGET_DIR" || exit 1
 SELECTED_DIR=$(find . -maxdepth "$MAXDEPTH" -type d -not -path "*/.git*" | sort | \
     fzf --prompt "Search a workspace > " \
         --layout reverse \
-        --height=70% \
-        --no-sort)
+        --height=70%)
 
 # Check if a directory was selected
 if [ -z "$SELECTED_DIR" ]; then
