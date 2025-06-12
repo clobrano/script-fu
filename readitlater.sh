@@ -2,6 +2,13 @@
 # -*- coding: UTF-8 -*-
 : "${ME:="$HOME/Me"}"
 
+if ! which html2text>/dev/null; then
+    echo "[!] html2text is missing!"
+fi
+if ! which pup 2>/dev/null; then
+    go install github.com/ericchiang/pup@latest
+fi
+
 ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode.org_archive")
 
@@ -166,6 +173,7 @@ EOF
 
 # Function to process a web page URL and categorize it
 process_webpage() {
+    set -x
     url=$1
 
     check_duplicate "$url"
@@ -177,7 +185,7 @@ process_webpage() {
         return 1
     fi
 
-    title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
+    title=$(curl -s "$url" | pup 'title text{}')
     content=$(curl -sL "$url" | html2text)
     reading_info=$(calculate_reading_time "$content")
     reading_time=$(echo "$reading_info" | awk '{print $1}')
