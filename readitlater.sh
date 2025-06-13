@@ -2,10 +2,7 @@
 # -*- coding: UTF-8 -*-
 : "${ME:="$HOME/Me"}"
 
-if ! which html2text>/dev/null; then
-    echo "[!] html2text is missing!"
-fi
-if ! which pup 2>/dev/null; then
+if ! which pup >/dev/null 2>&1; then
     go install github.com/ericchiang/pup@latest
 fi
 
@@ -47,6 +44,32 @@ get_tags() {
     fi
     echo "$TAG:"
     return 0
+}
+
+get_title() {
+    local title
+    if command -v termux-setup-storage >/dev/null; then
+        if ! title=$(termux-dialog text -t "ReadItLater" -i "Please, enter the Title manually" | jq -r .text); then
+            return 1
+        fi
+    elif command -v kdialog >/dev/null; then
+        if ! title=$(kdialog --title ReadItLater --inputbox "Please, enter the Title manually"); then
+            return 1
+        fi
+    else
+        echo ""
+        return 1
+    fi
+
+    # strip trailing space
+    title="${title% }"
+
+    if [ -z "$title" ] || [ "$title" == "" ]; then
+        return 1
+    fi
+    echo "$title"
+    return 0
+
 }
 
 get_video_data() {
@@ -186,6 +209,9 @@ process_webpage() {
     fi
 
     title=$(curl -s "$url" | pup 'title text{}')
+    if [ -z "$title" ]; then
+        title=$(get_title)
+    fi
     content=$(curl -sL "$url" | html2text)
     reading_info=$(calculate_reading_time "$content")
     reading_time=$(echo "$reading_info" | awk '{print $1}')

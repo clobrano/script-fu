@@ -10,6 +10,7 @@ description=$*
 cmd="lets goto $description"
 # Use a regular expression to extract the hash (UUID)
 hash=$(echo "$description" | grep -oE '[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}|[a-f0-9]{8}')
+is_task=$(echo "$description" | grep -c "#W")
 
 for ctx in "wk" "me"; do
     TASK="task"
@@ -42,7 +43,11 @@ for ctx in "wk" "me"; do
             fi
         fi
 
-        lets goto "$task_description" "$PROJECT" "$ld_tags" +"$ctx" "$hash"
+        if [ "$is_task" -eq 1 ]; then
+            description="$task_description"
+        fi
+
+        lets goto "$description" "$PROJECT" "$ld_tags" "$hash"
         exit $?
     fi
 done

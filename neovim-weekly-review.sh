@@ -7,6 +7,42 @@ TAGS="fit rel dty fun skill fin give"
 week_no=${1:-$(date +%V)}
 year=${2:-$(date +%Y)}
 
+iso_week_to_month() {
+    local iso_year="$1"
+    local iso_week="$2"
+
+    # Validate input: Ensure week is within 01-53 range
+    if (( iso_week < 1 || iso_week > 53 )); then
+        echo "Error: ISO week number '$iso_week' is out of valid range (1-53)." >&2
+        return 1
+    fi
+
+    # Determine a date that is definitely in ISO week 1 of the given year.
+    # January 4th is *always* in ISO week 1.
+    local jan_4th="${iso_year}-01-04"
+
+    # Calculate the Monday of ISO week 1 for the given year.
+    # 'monday' will find the Monday of the week that jan_4th falls into.
+    local monday_of_iso_week_1
+    monday_of_iso_week_1=$(date -d "${jan_4th} this monday" +"%Y-%m-%d")
+
+    # If the week is ISO week 1 itself, use the Monday of ISO week 1.
+    if (( iso_week == 1 )); then
+        local target_date_to_check="${monday_of_iso_week_1}"
+    else
+        # For other weeks, calculate the number of days to add.
+        # (iso_week - 1) * 7 days after the Monday of ISO week 1.
+        local days_to_add=$(( (iso_week - 1) * 7 ))
+        local target_date_to_check=$(date -d "${monday_of_iso_week_1} +${days_to_add} days" +"%Y-%m-%d")
+    fi
+
+    local month_num
+    month_num=$(date -d "${target_date_to_check}" +"%m") # Numeric month
+
+    echo "${month_num}"
+}
+
+
 week_range() {
     # Thanks to https://stackoverflow.com/a/61733557/1197008
     local _u _F _V
@@ -102,6 +138,9 @@ fi
 # Remove leading 0
 week_no=${week_no#0}
 
+month=$(iso_week_to_month "$year" "$week_no")
+
+
 start_date=$(week_range "$year" "$week_no" | cut -d" " -f1)
 end_date=$(week_range "$year" "$week_no" | cut -d" " -f2)
 ONE_DAY_IN_SECONDS=86400
@@ -119,27 +158,27 @@ NOTE_PATH=$ME/Notes/Journal
 
 FILE_NAME=$(date -d @"$start_date_sec" +%Y-%m-W%V).md
 WEEKLY_PATH=$NOTE_PATH/$FILE_NAME
-FILE_NAME="$(date +%Y)-$(date +%m).md"
+FILE_NAME="$year-$month.md"
 
 
 # Monthly review
-{
-echo "# $(date +'%Y %B') review"
-
+MONTHLY_NOTE="$NOTE_PATH/$year-$month.md"
+echo "# $(date +'%Y %B') review" >  "$MONTHLY_NOTE"
 for day in $(seq -w 1 31); do
-    file="$NOTE_PATH/$(date +%Y)-$(date +%m)-$day.md"
+    file="$NOTE_PATH/$year-$month-$day.md"
     if [ -f "$file" ]; then
         if out=$(sed -n '/#weeklyreview/,/^[^#]+/p' "$file"); then
             if [ -n "$out" ]; then
-                dd="$(date +%Y)-$(date +%m)-$day"
-                echo -e "\n[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)"
-                echo "$out"
+                dd="$year-$month-$day"
+                echo -e "\n[[$(date -d "$dd" +'%Y-%m-%d')]] $(date -d "$dd" +%A)" >>  "$MONTHLY_NOTE"
+                echo "$out" >>  "$MONTHLY_NOTE"
             fi
         fi
     fi
 done
-
-} >  "$NOTE_PATH/$(date +%Y)-$(date +%m).md"
+if [ -z "$out" ]; then
+    echo "No monthly review found"
+fi
 
 # Just logging
 echo "updating review between $(date -d @"$start_date_sec" +%F) and $(date -d @"$end_date_sec" +%F) in Week:$(basename "$WEEKLY_PATH") and Month:$FILE_NAME files"
@@ -160,6 +199,7 @@ echo "## Daily notes"
 week_notes=0
 week_notes_til=0
 
+set -x
 current=$start_date_sec
 while [ "$current" -le "$end_date_sec" ]; do
     day=$(date -d "@$current" +%F)
@@ -182,7 +222,7 @@ while [ "$current" -le "$end_date_sec" ]; do
     current=$((current + ONE_DAY_IN_SECONDS))
 done
 echo
-} >> "$WEEKLY_PATH" 
+} >> "$WEEKLY_PATH"
 
 # I want this in the weekly note AND visible when generating the report
 echo "Overall: $week_notes notes, $week_notes_til til " | tee -a "$WEEKLY_PATH"
