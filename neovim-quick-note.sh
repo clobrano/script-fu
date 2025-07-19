@@ -83,3 +83,4 @@ if [ "$in_termux" -eq 0 ]; then
 else
     neovim-weekly-review.sh
 fi
+

@@ -199,7 +199,6 @@ echo "## Daily notes"
 week_notes=0
 week_notes_til=0
 
-set -x
 current=$start_date_sec
 while [ "$current" -le "$end_date_sec" ]; do
     day=$(date -d "@$current" +%F)

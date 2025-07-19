@@ -12,11 +12,11 @@ DUE_TODAY=$(${TASK} +PENDING +TODAY count)
 
 OVERDUE=$(${TASK} +OVERDUE count)
 
-DUE_THIS_WEEK=$(${TASK} +PENDING due.after=sow due.before=eow count)
+DUE_THIS_WEEK=$(${TASK} due.after=sow due.before=eow count)
 
 ACTIVE=$(${TASK} +ACTIVE count)
 
 # `count` command doesn't seem to work with `completed` items
 DONE_THIS_WEEK=$(${TASK} completed end.after=sow end.before=eow | grep -E "^ -" -c)
 
-echo 󰻌 ${OVERDUE:-?} 󱄻 ${DUE_TODAY:-?} 󰚻 ${DUE_THIS_WEEK:-?} 󰫚 ${ACTIVE:-?} 󰕥 ${DONE_THIS_WEEK:-?} > $HOME/.taskwarrior-stats
+echo 󰻌 ${OVERDUE:-?} 󱄻 ${DUE_TODAY:-?} 󰫚 ${ACTIVE:-?} 󰕥 ${DONE_THIS_WEEK:-?} 󰚻 ${DUE_THIS_WEEK:-?} > $HOME/.taskwarrior-stats

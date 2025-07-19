@@ -2,10 +2,6 @@
 # -*- coding: UTF-8 -*-
 : "${ME:="$HOME/Me"}"
 
-if ! which pup >/dev/null 2>&1; then
-    go install github.com/ericchiang/pup@latest
-fi
-
 ORG_FILEPATH=$ME/Orgmode/ReadItLater.org
 ORG_ARCHIVE_FILEPATH=("$ME/Orgmode/ReadItLater.org_archive" "$ME/Orgmode/Orgmode.org_archive")
 
