@@ -19,12 +19,41 @@ fi
 
 
 if [[ "$link" =~ "github" ]]; then
+    org=""
+    project=""
+    item_num=""
+    item_type="" # "PR" or "I"
+    formatted_string=""
+
     if [[ "$link" =~ "pull" ]]; then
-        echo "$link" | sed -E 's|https://github.com/([^/]+)/([^/]+)/pull/([0-9]+)|\1/\2 PR\3|'
-        echo "$link" | sed -E 's|https://github.com/([^/]+)/([^/]+)/pull/([0-9]+)|\1/\2 PR\3|' | wl-copy
+        if [[ "$link" =~ https://github.com/([^/]+)/([^/]+)/pull/([0-9]+) ]]; then
+            org=${BASH_REMATCH[1]}
+            project=${BASH_REMATCH[2]}
+            item_num=${BASH_REMATCH[3]}
+            item_type="PR"
+        fi
     elif [[ "$link" =~ "issue" ]]; then
-        echo "$link" | sed -E 's|https://github.com/([^/]+)/([^/]+)/issues/([0-9]+)|\1/\2 I\3|'
-        echo "$link" | sed -E 's|https://github.com/([^/]+)/([^/]+)/issues/([0-9]+)|\1/\2 I\3|' | wl-copy
+        if [[ "$link" =~ https://github.com/([^/]+)/([^/]+)/issues/([0-9]+) ]]; then
+            org=${BASH_REMATCH[1]}
+            project=${BASH_REMATCH[2]}
+            item_num=${BASH_REMATCH[3]}
+            item_type="I"
+        fi
+    fi
+
+    if [[ -n "$org" && -n "$project" && -n "$item_num" ]]; then
+        # Fetch HTML and extract the title
+        # \xC2\xB7 is the UTF-8 encoding for the middle dot '·'
+        # This sed command removes " by <author>" and " · (Pull Request|Issue) #<num> · <org>/<project>"
+        title=$(curl -s "$link" | grep -oP '(?<=<title>)([^<]+)(?=</title>)' | sed -E 's/( by [^\xC2\xB7]*)?\xC2\xB7 (Pull Request|Issue) #[0-9]+ \xC2\xB7 .*$//')
+
+        formatted_string="[${org}/${project} ${item_type}${item_num}] _${title}_"
+        echo "$formatted_string"
+        echo "$formatted_string" | wl-copy
+    else
+        echo "Unsupported GitHub link format: $link"
+        echo "$link"
+        echo "$link" | wl-copy
     fi
 fi
 
