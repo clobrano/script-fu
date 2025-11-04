@@ -17,7 +17,6 @@ if [ -z "$link" ]; then
     fi
 fi
 
-
 if [[ "$link" =~ "github" ]]; then
     org=""
     project=""
@@ -45,7 +44,8 @@ if [[ "$link" =~ "github" ]]; then
         # Fetch HTML and extract the title
         # \xC2\xB7 is the UTF-8 encoding for the middle dot '·'
         # This sed command removes " by <author>" and " · (Pull Request|Issue) #<num> · <org>/<project>"
-        title=$(curl -s "$link" | grep -oP '(?<=<title>)([^<]+)(?=</title>)' | sed -E 's/( by [^\xC2\xB7]*)?\xC2\xB7 (Pull Request|Issue) #[0-9]+ \xC2\xB7 .*$//')
+        # The final sed command removes any trailing whitespace
+        title=$(curl -s "$link" | grep -oP '(?<=<title>)([^<]+)(?=</title>)' | sed -E 's/( by [^\xC2\xB7]*)?\xC2\xB7 (Pull Request|Issue) #[0-9]+ \xC2\xB7 .*$//' | sed 's/[[:space:]]*$//')
 
         formatted_string="[${org}/${project} ${item_type}${item_num}] _${title}_"
         echo "$formatted_string"

@@ -16,12 +16,13 @@ REPO_DIR="$CODEREVIEW_DIR/$REPO_NAME"
 if [ ! -d "$REPO_DIR" ]; then
     pushd "$CODEREVIEW_DIR" || exit 1
     gh repo clone "$REPO_NAME" "$REPO_NAME"
-    #git clone "https://github.com/$REPO_NAME" "$REPO_NAME"
     cd "$REPO_NAME"
     git-config.sh --personal
     popd || exit 1
 fi
 
+cd "$REPO_DIR"
+gh pr checkout "$PR_NUMBER"
 #pushd "$REPO_DIR" || exit 1
 #gh pr checkout "$PR_NUMBER"
 #popd || exit

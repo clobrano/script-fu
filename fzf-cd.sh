@@ -6,7 +6,7 @@ pattern=${1:-""}
 
 # Set the target directory
 TARGET_DIR="$HOME"
-MAXDEPTH=5
+MAXDEPTH=7
 
 # Check if fzf is installed
 if ! command -v fzf &> /dev/null

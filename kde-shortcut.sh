@@ -5,26 +5,25 @@
 ##
 
 declare -A apps
-apps[browser]="ww -fa Zen -c \"flatpak run io.github.zen_browser.zen\""
-apps[chrome]="ww -fa Chrome -c \"flatpak run com.google.Chrome\""
+#apps[browser]="ww -fa Zen -c \"flatpak run io.github.zen_browser.zen\""
+apps[browser]="ww -fa Chrome -c \"flatpak run com.google.Chrome\""
 #apps[browser]="ww -fa firefox -c firefox"
 
-apps[terminal]='ww -fa WezTerm'
+#apps[terminal]="ww -f kitty -c kitty"
 apps[terminal2]="ww -fa alacritty -c alacritty"
-#apps[terminal2]="ww -fa konsole -c konsole"
+apps[terminal]="ww -fa konsole -c konsole"
 
-apps[note]="ww -f kitty -c kitty"
+apps[note]='ww -fa WezTerm'
 apps[slack]="ww -fa Slack -c \"flatpak run com.slack.Slack\""
 apps[whatsapp]="ww -fa ZapZap -c \"flatpak run com.rtosta.zapzap\""
 
 
-command -v ww >/dev/null
-if [[ $? -ne 0 ]]; then
+if ! command -v ww >/dev/null; then
     git clone https://github.com/academo/ww-run-raise ~/Apps/academo-ww-run-raise
     echo "[+] Installing ww under /usr/local/bin"
     sudo cp ~/Apps/academo-ww-run-raise/ww /usr/local/bin
 fi
 
 cmd=${apps["$1"]}
-echo $cmd
+set -x
 $cmd

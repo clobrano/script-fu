@@ -5,18 +5,16 @@ if ! command -v calcurse /dev/null 2>&1 >/dev/null; then
 fi
 
 today_date=$(date "+%A %d %B - %H:%M")
-for ((i=0; i<${#today_date}; i++)) do echo -n "-"; done
-echo
-echo "$today_date"
-for ((i=0; i<${#today_date}; i++)) do echo -n "-"; done
-echo
-calcurse -a | raffaello -r "[0-9]+:[0-9]+=>blue"
+echo "## $today_date"
+calcurse -a | grep -v "Home" | grep -v "$(date +%D)"
 
-killall remind >/dev/null 2>&1
-myremind -z1 -k'notify-send --app-name MyRemind -i dialog-information -u normal %s' &
-rc=$?
-if [ $rc -ne 0 ]; then
-    echo "[!] Could not start Remind: error $rc"
-    exit 1
+if false; then
+    killall remind >/dev/null 2>&1
+    myremind -z1 -k'notify-send --app-name MyRemind -i dialog-information -u normal %s' &
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        echo "[!] Could not start Remind: error $rc"
+        exit 1
+    fi
+    echo "[+] Remind started"
 fi
-echo "[+] Remind started"

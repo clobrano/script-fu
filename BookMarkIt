@@ -1,83 +1,116 @@
 #!/usr/bin/env bash
 ## BookMarkIt
 ## options
-## add [url] [key]   Add a new URL to bookmarks with a given key. The "key" will be requested if not
-##                   provided, the URL instead will be taken from the clipboard if not provided.
-## find [query]      Find a URL from the bookmarks. You can provide an initial query string to limit
-##                   the search
+## add [url] [key]      Add a new URL to bookmarks with a given key. The "key" will be requested if not provided, the URL instead will be taken from the clipboard if not provided.
+## add [command] [key]  Add a new bash command git a given key. The "key" will be requested if not provided, the "command" instead will be taken from the clipboard if not provided.
+## find [query]         Find a URL/command from the bookmarks. You can provide an initial query string to limit
+##                      the search
 
-BOOKMARKS="$HOME/Documents/bookmarks.yml"
-
-action=${1:-'find'}
-
-
+dependencies=(yad)
 if command -v notify-send >/dev/null; then
     NOTIFY="notify-send --app-name BookMarkIt -i dialog-information"
 else
     NOTIFY="echo"
 fi
+for d in "${dependencies[@]}"; do
+    if ! command -v "$d" >/dev/null 2>&1; then
+        $NOTIFY "a dependency is missing: $d. Please install it"
+        exit 1
+    fi
+done
+
+BOOKMARKS="$HOME/Documents/bookmarks.yml"
+
+action=${1:-'find'}
 
 add_new_bookmark() {
-    local url=$1
-    shift
-    local key=$*
+    local book
+    local key
 
-    if [[ -z $url ]]; then
-        url=$(wl-paste)
+    if ! book=$(wl-paste); then
+        $NOTIFY "could not get bookmark from clipboard"
+        exit 1
     fi
 
-    if [[ ! $url =~ "http"  ]]; then
-        return 1
-    fi
-
-    exists_already=$(yq '.bookmarks[].link' "${BOOKMARKS}" | grep "$url" -c)
+    exists_already=$(yq '.bookmarks[].link' "${BOOKMARKS}" | grep "$book" -c)
     if [[ $exists_already -gt 0 ]]; then
         $NOTIFY "This URL was already bookmarked"
         return 1
     fi
 
-    if [[ -z $key ]]; then
-        if ! key=`kdialog --title BookMarkIt --inputbox "Give a name to the URL"`; then
-            exit 0
-        fi
+    #if ! key=$(kdialog --title BookMarkIt --inputbox "Give a name to bookmark"); then
+        #exit 0
+    #fi
+    # --- Define Variables ---
+    DIALOG_TITLE="BookMarkIt"
+    DIALOG_MAIN_TEXT="Please enter the Bookmark and Key to find it later"
+    SEPARATOR="\x1F"
+
+    if ! INPUT_RAW=$(yad --form \
+            --title="$DIALOG_TITLE" \
+            --text="$DIALOG_MAIN_TEXT" \
+            --width=650 --height=150 \
+            --separator="$SEPARATOR" \
+            --field="Key" "$key" \
+            --field="Bookmark" "$book" \
+            ); then
+        # allow to exit from the form without complaining
+        exit 0
+    fi
+
+    # shellcheck disable=SC2016
+    key=$(echo "$INPUT_RAW" | awk -F"$SEPARATOR" '{print $1}')
+    # shellcheck disable=SC2016
+    book=$(echo "$INPUT_RAW" | awk -F"$SEPARATOR" '{print $2}')
+
+    if [ -z "$key" ] || [ -z "$book" ]; then
+        $NOTIFY "failed: key:$key: book:$book:"
+        exit 1
     fi
 
     # replace spaces with underscore for the key
     key="${key// /_}"
 
-    title=$(wget -q -O - "$url" | tr "\n" " " | sed 's|.*<title>\([^<]*\).*</head>.*|\1|;s|^\s*||;s|\s*$||')
-    yq --inplace ".bookmarks += [{\"key\": \"${key}\", \"link\": \"${url}\"}]" "${BOOKMARKS}"
-    $NOTIFY "$key stored in Bookmark"
+    if out=$(yq --inplace ".bookmarks += [{\"key\": \"${key}\", \"link\": \"${book}\"}]" "${BOOKMARKS}"); then
+        $NOTIFY "$key stored in Bookmark"
+    else
+        $NOTIFY "BookMarkIt failed: error $? $out"
+    fi
     return 0
 }
 
 find_bookmark() {
-    QUERY="--query=$@"
+    QUERY="--query=$*"
     selection=$(\
         yq 'with(.bookmarks[]; .key = .key + " => " + .link)' "${BOOKMARKS}" \
         | yq '[ .bookmarks[].key]' \
-        | column -t -s ' ' \
         | sort \
         | fzf \
             --prompt "Search bookmark > " \
-            --layout reverse --height=70% $QUERY\
-            --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | xclip -selection clipboard)+abort'\
+            --layout reverse --height=70% "$QUERY"\
+            --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d "\n" | xclip -selection clipboard)+abort'\
     )
     if [[ -z ${selection} ]]; then
         exit 0
     fi
-    link=$(echo "${selection}" | awk '{print $4}')
-    xdg-open ${link} 2>&1 > /dev/null
+    selection=$(echo "${selection}" | awk -F ' => ' '{print $2}')
+    sanitized_selection=$(printf "%s" "$selection" | xargs)
+    if [[ "$sanitized_selection" = https://* ]]; then
+        xdg-open "$selection" > /dev/null 2>&1
+    else
+        echo "$selection" | wl-copy
+        $NOTIFY "added to clipboard: '${selection}'"
+    fi
 }
 
 if [[ $action == "add" ]]; then
     shift
-    add_new_bookmark $*
+    add_new_bookmark "$@"
     exit $?
 fi
 
-if [ $action == "find" ]; then
-    find_bookmark $2
+if [ "$action" == "find" ]; then
+    find_bookmark "$2"
     exit $?
 fi
 

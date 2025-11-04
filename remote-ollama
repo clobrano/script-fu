@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
-#
+## Start/Stop my remote ollama server
 ## options
-##     -m, --message <text> Content
-##     -l, --local  Desktop notification
-##     -r, --remote Mobile notification
-
-
+## -s, --start  Start the remote ollama server
+## -p, --stop   Stop the remote ollama server
+## -l, --logs   Log the remote ollama server
 
 # CLInt GENERATED_CODE: start
 # info: https://github.com/clobrano/CLInt.git
@@ -18,9 +16,9 @@
 for arg in "$@"; do
   shift
   case "$arg" in
-"--message") set -- "$@" "-m";;
-"--local") set -- "$@" "-l";;
-"--remote") set -- "$@" "-r";;
+"--start") set -- "$@" "-s";;
+"--stop") set -- "$@" "-p";;
+"--logs") set -- "$@" "-l";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -30,13 +28,13 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hlrm:' OPT; do
+while getopts 'hspl' OPT; do
     case "$OPT" in
         h) sed -ne 's/^## \(.*\)/\1/p' "$0"
            exit 1 ;;
-        l) _local=1 ;;
-        r) _remote=1 ;;
-        m) _message=$OPTARG ;;
+        s) _start=1 ;;
+        p) _stop=1 ;;
+        l) _logs=1 ;;
         \?) print_illegal "$@" >&2;
             echo "---"
             sed -ne 's/^## \(.*\)/\1/p' "$0"
@@ -46,8 +44,16 @@ while getopts 'hlrm:' OPT; do
 done
 # CLInt GENERATED_CODE: end
 
-[[ -n ${_local} ]] && notify-send -i "info" "${_message}"
-[[ -n ${_remote} ]] && ntfy-send.sh "${_message}"
 
-# default to local
-[[ -z ${_local} ]] && [[ -z ${_remote} ]] && notify-send -i "info" "${_message}"
+if [ -n "$_start" ]; then
+    ssh personal -- podman start ollama
+    exit $?
+fi
+if [ -n "$_stop" ]; then
+    ssh personal -- podman stop ollama
+    exit $?
+fi
+if [ -n "$_logs" ]; then
+    ssh personal -- podman logs -f ollama
+    exit $?
+fi
