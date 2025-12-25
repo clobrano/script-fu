@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script manages display modes and settings, particularly for Philips displays, by interacting with ddcutil and using a YAML configuration file.
 
 
 if [[ ! -f ~/.philips-display.yaml ]]; then

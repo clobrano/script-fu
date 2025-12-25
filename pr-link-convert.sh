@@ -47,14 +47,17 @@ if [[ "$link" =~ "github" ]]; then
         # The final sed command removes any trailing whitespace
         title=$(curl -s "$link" | grep -oP '(?<=<title>)([^<]+)(?=</title>)' | sed -E 's/( by [^\xC2\xB7]*)?\xC2\xB7 (Pull Request|Issue) #[0-9]+ \xC2\xB7 .*$//' | sed 's/[[:space:]]*$//')
 
-        formatted_string="[${org}/${project} ${item_type}${item_num}] _${title}_"
+        formatted_string="[${org}/${project} ${item_type}${item_num}]($link) _${title}_"
         echo "$formatted_string"
         echo "$formatted_string" | wl-copy
-    else
-        echo "Unsupported GitHub link format: $link"
-        echo "$link"
-        echo "$link" | wl-copy
+        exit 0
     fi
 fi
+
+
+# Fallback
+link_text=$(basename "$link"| tr '[:punct:]' ' ')
+formatted_string="[$link_text]($link)"
+echo "$formatted_string" | wl-copy
 
 

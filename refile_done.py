@@ -17,7 +17,7 @@ def refile_done_tasks(input_file, output_file):
             if len(line) == 0:
                 continue
 
-            if line.lstrip().startswith("* TODO"):
+            if line.lstrip().startswith("* TODO") or line.lstrip().startswith("* LATER"):
                 in_done = False
                 tasks_to_keep += 1
 

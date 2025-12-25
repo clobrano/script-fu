@@ -14,5 +14,5 @@ if [ -z "$description" ]; then
 fi
 
 
-"$HOME/workspace/golang/bin/logbook" log "$description"
+"$HOME/workspace/golang/bin/LogBook" log "$description"
 

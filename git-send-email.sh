@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script provides instructions and a wrapper for configuring and using `git send-email` to send patches, with special handling for 'usb-serial' related patches.
 
 echo [+] the following is the command to configure send mail.
 echo [+] - if you want to sent the last N commits as patches, append "-N" to the command

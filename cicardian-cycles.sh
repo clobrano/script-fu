@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script calculates and displays circadian cycles based on a reference time, with a default cycle length of 90 minutes.
 
 set -e
 ref=$1

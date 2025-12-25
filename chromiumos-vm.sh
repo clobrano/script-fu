@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script manages a ChromiumOS virtual machine, allowing for starting, stopping, and configuring its network and memory settings.
 IMAGE=${1}
 KILL=${2:-""}
 MEM="4G"

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script launches Alacritty with a bookmarking utility. It ensures Alacritty and bash are called with their full paths for robustness.
 
 # Ensure Alacritty and bash are called with their full paths for robustness
 ALACRITTY_PATH=$(command -v alacritty)

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script summarizes content from a URL copied to the clipboard. It checks if the clipboard content is a URL and, if so, processes it, redirecting the output to a temporary file.
 SUBMITTED=$(wl-paste)
 if ! echo "$SUBMITTED" | grep -E "http|https" > /dev/null 2>&1; then
     agent-alert.sh "Summarizer: the clipboard content is not a link"

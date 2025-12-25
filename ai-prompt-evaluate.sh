@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
+## This script evaluates AI prompts by collecting human input via a GUI and storing scores in a CSV file.
 set -eu
 
 DST="$HOME/.gemini/commands"
