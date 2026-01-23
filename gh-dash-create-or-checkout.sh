@@ -13,16 +13,14 @@ PR_NUMBER=$2
 CODEREVIEW_DIR="/home/clobrano/workspace/codeReviews/"
 REPO_DIR="$CODEREVIEW_DIR/$REPO_NAME"
 
-if [ ! -d "$REPO_DIR" ]; then
-    pushd "$CODEREVIEW_DIR" || exit 1
-    gh repo clone "$REPO_NAME" "$REPO_NAME"
-    cd "$REPO_NAME"
-    git-config.sh --personal
-    popd || exit 1
-fi
+[[ -d "$REPO_DIR" ]] && rm -rf "$REPO_DIR"
+mkdir -p "$REPO_DIR"
 
-cd "$REPO_DIR"
-gh pr checkout "$PR_NUMBER"
-#pushd "$REPO_DIR" || exit 1
-#gh pr checkout "$PR_NUMBER"
-#popd || exit
+pushd "$REPO_DIR" || exit 1
+
+git init
+git remote add origin "https://github.com/$REPO_NAME.git"
+git fetch --depth 1 origin "pull/$PR_NUMBER/head:pr-$PR_NUMBER"
+git checkout "pr-$PR_NUMBER"
+
+popd || exit 1
