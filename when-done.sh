@@ -48,6 +48,29 @@ while getopts 'hlrq:' OPT; do
 done
 # CLInt GENERATED_CODE: end
 
+sendNotification() {
+    if [[ $_local -eq 1 ]]; then
+        notify-send -u critical -i "info" "[when-done] finished" "Process $pid: $cmd"
+        if [ -f /usr/share/sounds/freedesktop/stereo/complete.oga ]; then
+            paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+        fi
+    fi
+    if [[ $_remote -eq 1 ]]; then
+        if [ -n "$NTFY_HANDLE" ]; then
+            ./ntfy-send.sh -c "$NTFY_HANDLE" -m "[when-done] finished: $cmd (PID $pid)"
+        fi
+    fi
+}
+
+if [[ ! -t 0 ]]; then
+    # We are receiving data via pipe
+    cat
+    pid="piped"
+    cmd="piped process"
+    sendNotification
+    exit 0
+fi
+
 res=$(pgrep -a "${_query:-.}" | grep -v " $0" | fzf \
     --header $'Press ENTER to select the process' \
     --layout=reverse --info=inline --no-multi \
@@ -62,20 +85,6 @@ pid=$(echo "$res" | awk '{print $1}')
 cmd=$(echo "$res" | cut -d' ' -f2-)
 
 PIDFILE=/tmp/when-done-$(date +%Y%m%d-%H%M%S).yaml
-
-sendNotification() {
-    if [[ $_local -eq 1 ]]; then
-        notify-send -u critical -i "info" "[when-done] finished" "Process $pid: $cmd"
-        if [ -f /usr/share/sounds/freedesktop/stereo/complete.oga ]; then
-            paplay /usr/share/sounds/freedesktop/stereo/complete.oga
-        fi
-    fi
-    if [[ $_remote -eq 1 ]]; then
-        if [ -n "$NTFY_HANDLE" ]; then
-            ./ntfy-send.sh -c "$NTFY_HANDLE" -m "[when-done] finished: $cmd (PID $pid)"
-        fi
-    fi
-}
 
 (
     tail --pid=${pid} --follow /dev/null
