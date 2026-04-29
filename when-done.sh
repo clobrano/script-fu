@@ -13,9 +13,6 @@
 # CLInt GENERATED_CODE: start
 # info: https://github.com/clobrano/CLInt.git
 
-# CLInt GENERATED_CODE: start
-# info: https://github.com/clobrano/CLInt.git
-
 # No-arguments is not allowed
 [ $# -eq 0 ] && sed -ne 's/^## \(.*\)/\1/p' $0 && exit 1
 
@@ -51,50 +48,47 @@ while getopts 'hlrq:' OPT; do
 done
 # CLInt GENERATED_CODE: end
 
-
-res=$(pgrep ${_query:-""} | xargs -I {} sh -c 'tr "\\0" " " < /proc/{}/cmdline; echo ""' | fzf \
+res=$(pgrep -a "${_query:-.}" | grep -v " $0" | fzf \
     --header $'Press ENTER to select the process' \
     --layout=reverse --info=inline --no-multi \
     --prompt 'Search >' --preview-window hidden:wrap)
 
-if [[ $res == "" ]]; then
+if [[ -z "$res" ]]; then
     echo "No process selected"
     exit 1
 fi
 
-pids=( $(pgrep "${query}") )
-for i in ${!pids[@]}; do
-    pid=${pids[$i]}
-    cmd=$(cat /proc/${pid}/cmdline | sed -e "s/\x00/ /g"; echo)
-    if [[ ${cmd} == ${res} ]]; then
-        PIDFILE=/tmp/when-done-$(date +%Y%m%d-%H:%M:%s).yaml
-        if [[ $_local -eq 1 ]]; then
-            $(tail --pid=${pid} --follow /dev/null && \
-                notify-send -i "info" "[when-done] finished" && \
-                paplay /usr/share/sounds/freedesktop/stereo/complete.oga && \
-                [[ -f "$PIDFILE" ]] && rm "$PIDFILE") &
-        fi
-        if [[ $_remote -eq 1 ]]; then
-            $(tail --pid=${pid} --follow /dev/null && \
-                curl -d "[when-done] finished" ntfy.sh/${NTFY_HANDLE} && \
-                paplay /usr/share/sounds/freedesktop/stereo/complete.oga && \
-                [[ -f "$PIDFILE" ]] && rm "$PIDFILE") &
-        fi
-        TAIL_PID=$!
-        cat << EOF > "$PIDFILE"
-        cmd: $cmd
-        pid: $TAIL_PID
-EOF
-        echo -e "Let's wait for ${pid}: \e[4m${cmd}\e[0m to end (PIDFILE=$PIDFILE)"
-        break
-    fi
-done
+pid=$(echo "$res" | awk '{print $1}')
+cmd=$(echo "$res" | cut -d' ' -f2-)
 
+PIDFILE=/tmp/when-done-$(date +%Y%m%d-%H%M%S).yaml
 
 sendNotification() {
-    if [[ -n ${_local} ]]; then
-        notify-send -i "info" "Process ${_query} done"
-        paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+    if [[ $_local -eq 1 ]]; then
+        notify-send -u critical -i "info" "[when-done] finished" "Process $pid: $cmd"
+        if [ -f /usr/share/sounds/freedesktop/stereo/complete.oga ]; then
+            paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+        fi
     fi
-    [[ -n ${_remote} ]] && ntfy-send.sh "Process ${_query} done"
+    if [[ $_remote -eq 1 ]]; then
+        if [ -n "$NTFY_HANDLE" ]; then
+            ./ntfy-send.sh -c "$NTFY_HANDLE" -m "[when-done] finished: $cmd (PID $pid)"
+        fi
+    fi
 }
+
+(
+    tail --pid=${pid} --follow /dev/null
+    sendNotification
+    [[ -f "$PIDFILE" ]] && rm "$PIDFILE"
+) &
+
+TAIL_PID=$!
+cat << EOF > "$PIDFILE"
+cmd: $cmd
+pid: $TAIL_PID
+target_pid: $pid
+EOF
+
+echo -e "Let's wait for ${pid}: \e[4m${cmd}\e[0m to end (PIDFILE=$PIDFILE)"
+
