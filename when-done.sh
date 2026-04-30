@@ -48,26 +48,143 @@ while getopts 'hlrq:' OPT; do
 done
 # CLInt GENERATED_CODE: end
 
+find_predecessor() {
+    local inode
+    inode=$(readlink /proc/self/fd/0 2>/dev/null)
+    [[ $inode =~ pipe:\[([0-9]+)\] ]] || return 1
+    local inode_num=${BASH_REMATCH[1]}
+
+    if command -v lsof >/dev/null 2>&1; then
+        # find who has this pipe open for writing (fd 1 or 2 usually)
+        local p
+        # -t: terse (PIDs only), -w: suppress warnings, -E: show endpoint info (can be useful but we use grep)
+        p=$(lsof -t -d 1,2 -w 2>/dev/null | grep -v "^$$\$" | xargs -I {} sh -c "ls -l /proc/{}/fd 2>/dev/null | grep -q 'pipe:\[$inode_num\]' && echo {}" | head -n 1)
+        if [[ -n $p ]]; then
+            echo "$p"
+            return 0
+        fi
+    fi
+
+    # Fallback to /proc scanning
+    for fd_dir in /proc/[0-9]*/fd; do
+        # Skip self
+        [[ $fd_dir =~ /proc/$$/ ]] && continue
+
+        # Extract PID from fd_dir
+        local current_pid
+        current_pid=$(echo "$fd_dir" | cut -d/ -f3)
+
+        for fd in "$fd_dir"/*; do
+            [[ -e "$fd" ]] || continue
+            # We want to find who is WRITING to our pipe
+            # In /proc/PID/fdinfo/FD there is a 'flags' field
+            # O_WRONLY (1) or O_RDWR (2)
+            if readlink "$fd" 2>/dev/null | grep -q "pipe:\[$inode_num\]"; then
+                local fd_num
+                fd_num=$(basename "$fd")
+                if grep -qE "flags:[[:space:]]*[1-9][0-9]*[12]" "/proc/$current_pid/fdinfo/$fd_num" 2>/dev/null; then
+                    echo "$current_pid"
+                    return 0
+                fi
+            fi
+        done
+    done
+    return 1
+}
+
+wait_and_get_status() {
+    local target_pid=$1
+    local exit_code="unknown"
+
+    if command -v strace >/dev/null 2>&1; then
+        # Attach strace to get the exit code
+        local strace_out
+        strace_out=$(strace -e trace=none -p "$target_pid" 2>&1)
+        if [[ $strace_out =~ exited\ with\ ([0-9]+) ]]; then
+            exit_code=${BASH_REMATCH[1]}
+        elif [[ $strace_out =~ killed\ by\ ([A-Z0-9]+) ]]; then
+            exit_code="SIG${BASH_REMATCH[1]}"
+        fi
+    elif [ -d "/proc/$target_pid" ]; then
+        # Fallback to tail if strace is not available
+        tail --pid="$target_pid" --follow /dev/null
+    fi
+    echo "$exit_code"
+}
+
 sendNotification() {
+    local status=$1
+    local msg_suffix=""
+    local icon="info"
+    local title="[when-done] finished"
+
+    case "$status" in
+        0)
+            msg_suffix="SUCCESS ✅"
+            icon="emblem-success"
+            ;;
+        unknown)
+            msg_suffix="DONE 🏁"
+            ;;
+        SIGINT|SIGTERM|SIGKILL|SIG*)
+            msg_suffix="KILLED 💀 ($status)"
+            icon="error"
+            ;;
+        *)
+            msg_suffix="FAILED ❌ (status: $status)"
+            icon="error"
+            ;;
+    esac
+
     if [[ $_local -eq 1 ]]; then
-        notify-send -u critical -i "info" "[when-done] finished" "Process $pid: $cmd"
+        notify-send -u critical -i "$icon" "$title" "$msg_suffix\n${cmd:0:20}..."
         if [ -f /usr/share/sounds/freedesktop/stereo/complete.oga ]; then
             paplay /usr/share/sounds/freedesktop/stereo/complete.oga
         fi
     fi
     if [[ $_remote -eq 1 ]]; then
         if [ -n "$NTFY_HANDLE" ]; then
-            ./ntfy-send.sh -c "$NTFY_HANDLE" -m "[when-done] finished: $cmd (PID $pid)"
+            ./ntfy-send.sh -c "$NTFY_HANDLE" -m "$title: $msg_suffix - ${cmd:0:20}..."
         fi
     fi
 }
 
 if [[ ! -t 0 ]]; then
     # We are receiving data via pipe
+    pid=$(find_predecessor || echo "piped")
+
+    if [[ $pid =~ ^[0-9]+$ ]]; then
+        cmd=$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || echo "piped process")
+        # Start strace in background to capture the exit code
+        # We use a temp file to capture the status
+        STATUS_FILE=$(mktemp)
+        (
+            wait_and_get_status "$pid" > "$STATUS_FILE"
+        ) &
+        STRACE_BG_PID=$!
+    else
+        cmd="piped process"
+    fi
+
+    set -o pipefail
     cat
-    pid="piped"
-    cmd="piped process"
-    sendNotification
+    cat_status=$?
+    # PIPESTATUS[0] is the exit code of the predecessor
+    pipe_status=${PIPESTATUS[0]}
+
+    if [[ -n $STRACE_BG_PID ]]; then
+        # Wait a bit for strace to finish if it hasn't already
+        wait "$STRACE_BG_PID" 2>/dev/null
+        status=$(cat "$STATUS_FILE")
+        rm "$STATUS_FILE"
+    fi
+
+    # If strace failed or was unknown, but we have PIPESTATUS
+    if [[ $status == "unknown" || -z $status ]]; then
+        status=$pipe_status
+    fi
+
+    sendNotification "$status"
     exit 0
 fi
 
@@ -87,8 +204,8 @@ cmd=$(echo "$res" | cut -d' ' -f2-)
 PIDFILE=/tmp/when-done-$(date +%Y%m%d-%H%M%S).yaml
 
 (
-    tail --pid=${pid} --follow /dev/null
-    sendNotification
+    status=$(wait_and_get_status "${pid}")
+    sendNotification "$status"
     [[ -f "$PIDFILE" ]] && rm "$PIDFILE"
 ) &
 
