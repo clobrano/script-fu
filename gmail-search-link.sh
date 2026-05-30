@@ -4,7 +4,7 @@
 ## e.g.
 ## input: email from HR
 ## output: https://mail.google.com/mail/u/0/#search/email+from+HR
-
+WORK_ACCOUNT_ID=1
 if [ -z "$*" ]; then
     echo "Usage: $0 <search_query>"
     exit 1
@@ -14,9 +14,12 @@ fi
 SEARCH_QUERY="$*"
 
 # Sanitize the input:
-# 1. Remove parentheses
+# 1. Remove some problematic characters (e.g. parenthesis)
 SEARCH_QUERY=${SEARCH_QUERY//(/}
 SEARCH_QUERY=${SEARCH_QUERY//)/}
+SEARCH_QUERY=${SEARCH_QUERY//\[/}
+SEARCH_QUERY=${SEARCH_QUERY//\]/}
+SEARCH_QUERY=${SEARCH_QUERY//:/}
 # 2. Replace spaces with '+'
 SEARCH_QUERY=${SEARCH_QUERY// /+}
 # 3. Remove consecutive '+' characters
@@ -24,4 +27,4 @@ while [[ "$SEARCH_QUERY" == *"++"* ]]; do
     SEARCH_QUERY=${SEARCH_QUERY//++/+}
 done
 
-echo "https://mail.google.com/mail/u/0/#search/${SEARCH_QUERY}"
+echo "https://mail.google.com/mail/u/$WORK_ACCOUNT_ID/#search/${SEARCH_QUERY}" | wl-copy

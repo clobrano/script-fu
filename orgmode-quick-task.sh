@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 
+#notify-end "running alt"
+
+/usr/bin/konsole --profile=popups -e bash -c '/home/clobrano/workspace/golang/bin/wui --config ~/Me/Taskwarrior/personal-config.yaml'
+
+exit 0
+# temporary workaround
 ORGMODE="$HOME/Me/Orgmode/Orgmode.org"
 description="$*"
 
@@ -31,8 +37,6 @@ if [ -n "$description" ]; then
     # Remove extracted date/time from description if it exists
     if [ -n "$extracted_datetime" ]; then
         description=$(echo "$description" | sed -E "s/$(echo "$extracted_datetime" | sed 's/[[:space:]]/[[:space:]]/g')//")
-
-        
         extracted_datetime=$(date -d "$extracted_datetime" '+%Y-%m-%d %a %H:%M')
         deadline_property="DEADLINE: <${extracted_datetime}>"
     else

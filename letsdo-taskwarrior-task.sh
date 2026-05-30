@@ -20,11 +20,6 @@ if [ -n "$hash" ]; then
         exit 0
     fi
 
-    project=$($TASK "$hash" export | jq -r '.[0].project')
-    if [ "$project" != "null" ]; then
-        PROJECT="@$project"
-    fi
-
     if tw_tags=$($TASK "$hash" export | jq -r '.[0].tags'); then
         if [ -n "$tw_tags" ] && [ "$tw_tags" != "null" ]; then
             tw_tags=$($TASK "$hash" export | jq -r '.[0].tags[]')
@@ -39,7 +34,7 @@ if [ -n "$hash" ]; then
         fi
     fi
 
-    description="$task_description $ld_tags $PROJECT ($hash)"
+    description="$task_description $ld_tags ($hash)"
     lets goto "$description"
     exit $?
 fi

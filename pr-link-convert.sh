@@ -59,5 +59,3 @@ fi
 link_text=$(basename "$link"| tr '[:punct:]' ' ')
 formatted_string="[$link_text]($link)"
 echo "$formatted_string" | wl-copy
-
-

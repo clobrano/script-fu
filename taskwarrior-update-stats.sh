@@ -9,14 +9,16 @@ fi
 TASK="task rc:~/.taskworkrc"
 
 DUE_TODAY=$(${TASK} +PENDING +TODAY count)
+DUE_TODAY_DONE=$(${TASK} -PENDING +TODAY count)
 
 OVERDUE=$(${TASK} +OVERDUE count)
 
 DUE_THIS_WEEK=$(${TASK} due.after=sow due.before=eow count)
+DUE_THIS_WEEK_DONE=$(${TASK} status:completed due.after=sow due.before=eow count)
 
-ACTIVE=$(${TASK} +ACTIVE count)
+ACTIVE=$(${TASK} +doing count)
 
 # `count` command doesn't seem to work with `completed` items
-DONE_THIS_WEEK=$(${TASK} completed end.after=sow end.before=eow | grep -E "^ -" -c)
+DONE_THIS_WEEK=$(${TASK} status:completed end.after=sow end.before=eow count)
 
-echo 󰻌 ${OVERDUE:-?} 󱄻 ${DUE_TODAY:-?} 󰫚 ${ACTIVE:-?} 󰕥 ${DONE_THIS_WEEK:-?} 󰚻 ${DUE_THIS_WEEK:-?} > $HOME/.taskwarrior-stats
+echo 󰻌 ${OVERDUE:-?} 󱄻 ${DUE_TODAY_DONE:-?}/${DUE_TODAY:-?} 󰚻 ${DUE_THIS_WEEK_DONE:-?}/${DUE_THIS_WEEK:-?} 󰫚 ${ACTIVE:-?} 󰕥 ${DONE_THIS_WEEK:-?} > $HOME/.taskwarrior-stats

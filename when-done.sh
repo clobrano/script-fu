@@ -9,6 +9,7 @@
 ##   -q, --query <query>  query to select the process to wait for
 ##   -l, --local          send a local notification when the process ends (via notify-send)
 ##   -r, --remote         send a remote notification when the process ends (via ntfy)
+##   -L, --list           list all the processes currently being observed
 
 # CLInt GENERATED_CODE: start
 # info: https://github.com/clobrano/CLInt.git
@@ -23,6 +24,7 @@ for arg in "$@"; do
 "--query") set -- "$@" "-q";;
 "--local") set -- "$@" "-l";;
 "--remote") set -- "$@" "-r";;
+"--list") set -- "$@" "-L";;
   *) set -- "$@" "$arg"
   esac
 done
@@ -32,12 +34,13 @@ function print_illegal() {
 }
 
 # Parsing flags and arguments
-while getopts 'hlrq:' OPT; do
+while getopts 'hlrLq:' OPT; do
     case $OPT in
         h) sed -ne 's/^## \(.*\)/\1/p' $0
            exit 1 ;;
         l) _local=1 ;;
         r) _remote=1 ;;
+        L) _list=1 ;;
         q) _query=$OPTARG ;;
         \?) print_illegal $@ >&2;
             echo "---"
@@ -47,6 +50,53 @@ while getopts 'hlrq:' OPT; do
     esac
 done
 # CLInt GENERATED_CODE: end
+
+list_observed() {
+    local files=(/tmp/when-done-*.yaml)
+    if [[ ! -e "${files[0]}" ]]; then
+        echo "No processes are currently being observed."
+        return 0
+    fi
+
+    local header_printed=0
+
+    for file in "${files[@]}"; do
+        if [[ ! -f "$file" ]]; then continue; fi
+
+        local p_pid=""
+        local p_target_pid=""
+        local p_cmd=""
+
+        while IFS=': ' read -r key val; do
+            case "$key" in
+                pid) p_pid="$val" ;;
+                target_pid) p_target_pid="$val" ;;
+                cmd) p_cmd="$val" ;;
+            esac
+        done < "$file"
+
+        if [[ -n "$p_pid" ]] && kill -0 "$p_pid" 2>/dev/null; then
+            if [[ $header_printed -eq 0 ]]; then
+                printf "%-10s %-15s %s\n" "OBSERVER" "TARGET_PID" "COMMAND"
+                printf "%-10s %-15s %s\n" "--------" "----------" "-------"
+                header_printed=1
+            fi
+            printf "%-10s %-15s %s\n" "$p_pid" "$p_target_pid" "$p_cmd"
+        else
+            # Observer is no longer running, clean up stale file
+            rm -f "$file"
+        fi
+    done
+
+    if [[ $header_printed -eq 0 ]]; then
+        echo "No processes are currently being observed."
+    fi
+}
+
+if [[ $_list -eq 1 ]]; then
+    list_observed
+    exit 0
+fi
 
 find_predecessor() {
     local inode

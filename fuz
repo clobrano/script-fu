@@ -58,15 +58,21 @@ main() {
 
 select_file() {
   given_file="$1"
+  if command -v bat > /dev/null 2>&1; then
+    CAT="bat {} --color=always"
+  else
+    CAT="/bin/cat {}"
+  fi
+  export FZF_DEFAULT_COMMAND='fd --type f --follow --exclude .git'
   fzf \
     --prompt "Search your file: " \
-    --preview="cat {} --color=always" \
-    --preview-window=right:70%:wrap \
+    --preview="$CAT" \
+    --preview-window=right:50%:wrap \
     --query="$given_file" \
-    --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | xclip -selection clipboard)+abort'
+    --bind 'ctrl-y:execute(readlink -f {} | echo {} | cut -d">" -f2 | tr -d " " | tr -d "\n" | wl-copy)+abort'
 }
 
 previousdirectory=$(pwd)
 cd "$_directory"
-main "$@"
+main
 cd "$previousdirectory"

@@ -4,9 +4,6 @@
 sessions=(
     0-devel
     1-note
-    3-medik8s
-    4-code-reviews
-    9-scratchpad
     )
 
 attach=0

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 ## Notification system to let AI agent send desktop notifications
+MESSAGE=$(jq -r '.message')
+APP_NAME="💬 Agent notification"
 
-MESSAGE=$1
-TITLE=""
+LOCATION=""
 if [ -n "$TMUX" ]; then
-    echo "You are inside a tmux session."
     sessionName=$(tmux display-message -p '#S')
-    TITLE="[$sessionName]"
+    LOCATION="[$sessionName] "
 fi
-TITLE="${TITLE} ${PWD/#$HOME/}"
-notify-send --app-name "${TITLE}" --icon "info" --expire-time=15000 "${MESSAGE}"
+#TITLE="${TITLE}${PWD/#$HOME/}"
+LOCATION="${LOCATION}$(basename "$(pwd)")"
 
-echo "alert-agent done"
+notify-send --app-name "${APP_NAME}" --expire-time=15000 "${MESSAGE}" "${LOCATION}" 
