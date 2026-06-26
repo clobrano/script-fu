@@ -1,0 +1,69 @@
+#!/bin/bash
+
+AGENT_PATTERN="gemini|claude|gpt|interpreter|aider|anthropic|python|node"
+declare -A LAST_IO
+
+trap "tput cnorm; clear; exit" INT TERM
+tput civis
+
+while true; do
+    tput cup 0 0
+    frame="\e[1;34m--- AI AGENT TASK MANAGER (Deep State) ---\e[0m\n"
+    frame+="Refreshes every 2s | $(date +%H:%M:%S)\n"
+    frame+="--------------------------------------------------------\n"
+
+    last_sess=""
+    
+    while read -r sess wind p_pid; do
+        [[ ! "$p_pid" =~ ^[0-9]+$ ]] && continue
+
+        target_pid=""
+        potential_pids=$(pgrep -P "$p_pid" 2>/dev/null; echo "$p_pid")
+        
+        for pid in $potential_pids; do
+            full_cmd=$(ps -fp "$pid" -o args --no-headers 2>/dev/null)
+            [[ "$full_cmd" =~ $AGENT_PATTERN ]] && target_pid="$pid"
+        done
+
+        if [[ -n "$target_pid" ]]; then
+            # We add 'wchan' to the ps command to see the kernel wait point
+            stats=$(ps -p "$target_pid" -o %cpu,rss,comm,wchan --no-headers 2>/dev/null)
+            [ -z "$stats" ] && continue
+            
+            read -r cpu mem_kb comm wchan <<< "$stats"
+            mem_mb=$(echo "scale=1; $mem_kb / 1024" | bc -l)
+            
+            # IO Heartbeat
+            io_file="/proc/$target_pid/fdinfo"
+            current_io=$(grep "pos:" "$io_file"/* 2>/dev/null | awk '{s+=$2} END {print s}')
+
+            # --- THE NEW LOGIC GATE ---
+            # 1. If CPU is active, it's definitely THINKING
+            if (( $(echo "$cpu > 1.0" | bc -l) )); then
+                state="[ THINKING ]"; color="\e[1;32m"
+            # 2. If it's blocked on TTY input, it is definitely IDLE (waiting for you)
+            elif [[ "$wchan" =~ "tty" || "$wchan" =~ "poll" ]] && [[ "$current_io" == "${LAST_IO[$target_pid]}" ]]; then
+                state="[ IDLE ]"; color="\e[1;33m"
+            # 3. If it's not on TTY but IO is moving or WCHAN is network-related, it's THINKING/WORKING
+            elif [[ "$current_io" != "${LAST_IO[$target_pid]}" || ! "$wchan" =~ "tty" ]]; then
+                state="[ THINKING ]"; color="\e[1;36m" # Cyan for 'Working but low CPU'
+            else
+                state="[ IDLE ]"; color="\e[1;33m"
+            fi
+            
+            LAST_IO[$target_pid]=$current_io
+
+            if [[ "$last_sess" != "$sess" ]]; then
+                frame+="\n\e[1;35m  $sess\e[0m\n"
+                last_sess=$sess
+            fi
+
+            frame+=$(printf "  |-- %-12s %-10s %-8s %-10s %b%s\e[0m\n" \
+                "$wind" "CPU:$cpu%" "RAM:${mem_mb}M" "($comm)" "$color" "$state")
+        fi
+    done < <(tmux list-panes -a -F "#S #W #{pane_pid}")
+
+    echo -e "$frame"
+    tput ed 
+    sleep 2
+done

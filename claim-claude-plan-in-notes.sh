@@ -1,10 +1,9 @@
 #!/bin/bash
+set -e
 
 # --- CONFIGURATION ---
 # The folder where you want your "well-known" notes to live
 NOTES_DIR="$HOME/Documents/RedHatNotes/Tasks/"
-# The directory where Claude stores its plans
-CLAUDE_DIR="$HOME/.claude/plans"
 # --- END CONFIGURATION ---
 
 # Ensure the notes directory exists
@@ -17,15 +16,13 @@ if [ -z "$1" ]; then
 fi
 
 TARGET_FILE="$1"
-
-# 1. Extract the Title (First # Heading)
-# This looks for the first lines starting with '# ' and strips the symbol and leading spaces
-TITLE=$(grep -m 10 '^# ' "$TARGET_FILE" | sed 's/^# *//')
-
-# Fallback if no title is found (use the random filename as a base)
+TITLE=$2
 if [ -z "$TITLE" ]; then
-    TITLE=$(basename "$TARGET_FILE" .md)
+    # 1. Extract the Title (First # Heading)
+    # This looks for the first lines starting with '# ' and strips the symbol and leading spaces
+    TITLE=$(grep -m 10 '^# ' "$TARGET_FILE" | sed 's/^# *//')
 fi
+
 
 # 2. Format the Filename (Lowercases, replaces spaces/special chars with dashes)
 CLEAN_NAME=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\{2,\}/-/g' | sed 's/^-//;s/-$//')

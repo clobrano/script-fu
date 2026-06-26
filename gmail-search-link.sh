@@ -3,8 +3,8 @@
 ## Create a search link for GMail from text
 ## e.g.
 ## input: email from HR
-## output: https://mail.google.com/mail/u/0/#search/email+from+HR
-WORK_ACCOUNT_ID=1
+## output: https://mail.google.com/mail/u/${WORK_ACCOUNT_ID}/#search/email+from+HR
+WORK_ACCOUNT_ID=0
 if [ -z "$*" ]; then
     echo "Usage: $0 <search_query>"
     exit 1

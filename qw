@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# -*- coding: UTF-8 -*-
+
+query=$(printf '%s' "$*" | jq -sRr @uri)
+w3m "https://duckduckgo.com/?q=$query"
