@@ -40,7 +40,6 @@ done
 # CLInt GENERATED_CODE: end
 
 set -e
-xclip=$(which xclip)
 
 main() {
   previous_file="$1"
@@ -49,7 +48,7 @@ main() {
   if [ -n "$file_to_edit" ] && [ "$EDITOR" != none ] ; then
       $EDITOR "$file_to_edit"
   elif [ -n "$xclip" ]; then
-    echo "$file_to_edit" | tr -d '\n' | xclip -selection clipboard
+    echo "$file_to_edit" | tr -d '\n' | wl-copy
     echo "EDITOR is unset: $file_to_edit is available in the clipboard"
   else
     echo "$file_to_edit"
