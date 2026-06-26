@@ -6,10 +6,9 @@
 
 declare -A apps
 #apps[browser]="ww -fa firefox -c firefox"
-apps[browser]="ww -fa Chrome -c \"flatpak run com.google.Chrome\""
+apps[browser]="ww -fa Chrome"
 apps[terminal]="ww -fa konsole -c konsole"
-apps[slack]="ww -fa Slack -c \"flatpak run com.slack.Slack\""
-apps[whatsapp]="ww -fa ZapZap -c \"flatpak run com.rtosta.zapzap\""
+apps[slack]="ww -fa Slack"
 apps[note]="ww -fa notes -c ghostty"
 
 if ! command -v ww >/dev/null; then
