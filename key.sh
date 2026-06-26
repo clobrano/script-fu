@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # -*- coding: UTF-8 -*-
 set -o pipefail
-ACCOUNT=${1:-$YUBIKEY_ACCOUNT}
 
-echo "$ACCOUNT"
+ACCOUNT=$(secret-tool lookup yubikey account)
 if [ -z "${ACCOUNT}" ]; then
     notify-send --app-name "YKMAN" -u critical "Yubikey error" "YUBIKEY_ACCOUNT was not set" && exit 
     exit 1
