@@ -20,7 +20,7 @@ TARGET_FILE="$1"
 
 # 1. Extract the Title (First # Heading)
 # This looks for the first lines starting with '# ' and strips the symbol and leading spaces
-TITLE=$(grep -m 10 '^# ' "$TARGET_FILE" | sed 's/^# *//')
+TITLE=$(grep -m 1 '^# ' "$TARGET_FILE" | sed 's/^# *//')
 
 # Fallback if no title is found (use the random filename as a base)
 if [ -z "$TITLE" ]; then
@@ -37,8 +37,17 @@ if [ -f "$DEST_PATH" ]; then
     exit 1
 fi
 
-echo "Claiming $TARGET_FILE to $DEST_PATH. Continue?"
-read -r
+echo "Determined filename: $CLEAN_NAME.md"
+echo "Press Enter to accept, or type a new filename (without .md):"
+read -r USER_INPUT
+if [ -n "$USER_INPUT" ]; then
+    CLEAN_NAME="$USER_INPUT"
+    DEST_PATH="$NOTES_DIR/$CLEAN_NAME.md"
+    if [ -f "$DEST_PATH" ]; then
+        echo "Note '$CLEAN_NAME.md' already exists. Aborting to prevent overwrite."
+        exit 1
+    fi
+fi
 
 # Move the actual content to your notes folder
 mv "$TARGET_FILE" "$DEST_PATH"
