@@ -47,7 +47,7 @@ done
 # CLInt GENERATED_CODE: end
 
 [[ -n ${_local} ]] && notify-send -i "info" "${_message}"
-[[ -n ${_remote} ]] && ntfy-send.sh "${_message}"
+[[ -n ${_remote} ]] && ntfy-send.sh --message "${_message}"
 
 # default to local
 [[ -z ${_local} ]] && [[ -z ${_remote} ]] && notify-send -i "info" "${_message}"
