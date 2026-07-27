@@ -48,8 +48,10 @@ if [[ "$link" =~ "github" ]]; then
         title=$(curl -s "$link" | grep -oP '(?<=<title>)([^<]+)(?=</title>)' | sed -E 's/( by [^\xC2\xB7]*)?\xC2\xB7 (Pull Request|Issue) #[0-9]+ \xC2\xB7 .*$//' | sed 's/[[:space:]]*$//')
 
         formatted_string="[${org}/${project} ${item_type}${item_num}]($link) _${title}_"
-        echo "$formatted_string"
         echo "$formatted_string" | wl-copy
+        echo "Markdown link: $formatted_string (in clipboard)"
+        echo "[${org}/${project} ${item_type} ${item_num}]" | wl-copy
+        echo "Neovim Notes shortcut: [${org}/${project} ${item_type} ${item_num}] (in clipboard)"
         exit 0
     fi
 fi
