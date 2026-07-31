@@ -15,8 +15,8 @@ fi
 VALUE=$(kdialog --title "Password" --password "Input Yubikey password" | ykman oath accounts code "$ACCOUNT" | awk '{print $3}')
 rc=$?
 if [ $rc -ne 0 ]; then
-    notify-send --app-name "YKMAN" -u critical "Yubikey error" "Could not get password (error $rc)"
+    notify-send --app-name "YKMAN"  --icon dialog-error "Yubikey error" "Could not get password (error $rc)" --expire-time=10000
 else
     echo -n "$VALUE" | wl-copy
-    notify-send --app-name "YKMAN" -i dialog-information "Yubikey" "$VALUE"
+    notify-send --app-name "YKMAN" --icon dialog-information "Yubikey" "$VALUE"
 fi
